@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **OPS-002**: ASCII architecture diagram in the README.
+- **OPS-003**: Phase-1 declaration + `docs/roadmap.md` with phase-transition
+  criteria.
+- **ARCH-008**: README rationale for exposing Tools only (no Resources/Prompts).
+- **SEC-019 / SEC-013 / SEC-008**: `docs/security-posture.md` — lethal-trifecta
+  assessment, secret-management stance (none required), supply-chain trust.
+
+### Changed
+
+- **ARCH-007**: `tariff_compare_municipalities` fetches municipalities
+  concurrently (`asyncio.gather`) instead of sequentially.
+- **ARCH-003**: search tools return `match_type` (`results`/`none`) and an
+  actionable `suggestion` on zero hits instead of a silent empty list.
+
 ### Observability
 
 - **OBS-003 / OBS-004**: Structured JSON logging via `structlog`, written to

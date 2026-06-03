@@ -155,6 +155,23 @@ docker run --rm -p 8000:8000 swiss-electricity-mcp
 
 ## 🏗️ Architecture
 
+```
+          ┌────────────────────────── MCP client (Claude etc.) ──────────────────────────┐
+          │                          stdio  or  Streamable HTTP                           │
+          └───────────────────────────────────────┬──────────────────────────────────────┘
+                                                   │  12 read-only tools (annotated)
+                                          ┌────────▼─────────┐
+                                          │  FastMCP server   │  egress allow-list + HTTPS gate
+                                          │  + structlog/OTel │  per-source TTL cache + retry
+                                          └───┬────────┬───┬──┘
+                  dashboard_* │ tariff_*      │        │   │   consumption_*
+                              ▼               ▼        ▼   ▼
+                  ┌───────────────────┐ ┌───────────┐ ┌──────────────┐ ┌─────────────────────┐
+                  │ Energiedashboard  │ │  LINDAS   │ │ opendata.swiss│ │ data.stadt-zuerich.ch│
+                  │ .admin.ch (BFE)   │ │  SPARQL   │ │   CKAN        │ │   CKAN (OGD)         │
+                  └───────────────────┘ └───────────┘ └──────────────┘ └─────────────────────┘
+```
+
 **Hybrid (live API + SPARQL + CKAN discovery)**, no authentication. Three reasons this is the right shape:
 
 1. **Different latency profiles per source**: Energiedashboard responds in ~200 ms (great live); LINDAS SPARQL is slower and occasionally returns 504 (longer timeout + 3 retries); CKAN is metadata-only and inherently safe.
@@ -176,6 +193,23 @@ This makes accidental misattribution structurally impossible.
 - **Retry**: 3 attempts with exponential backoff (2 s / 4 s / 8 s).
 - **5xx + 429**: retried. **4xx (except 429)**: raised immediately (permanent client error).
 - **In-memory TTL cache**: per-source TTLs reduce upstream load and round-trip during multi-step agent workflows.
+
+### MCP primitives — why Tools only
+
+This server intentionally exposes **only Tools**, not Resources or Prompts. The
+data is parametric and query-driven (a municipality BFS number, a category, a
+year), which maps naturally to tool calls; there is no stable, enumerable set of
+documents to expose as Resources, and no curated prompt templates to ship. If a
+future use case needs, say, a fixed "national production mix" document, the
+read-only `dashboard_*` tools are the obvious Resource-migration candidates.
+
+### Project phase
+
+**Phase 1 — read-only.** All 12 tools are read-only (`readOnlyHint=true`) with no
+write or destructive operations. Phase-transition criteria and the longer-term
+plan live in [`docs/roadmap.md`](docs/roadmap.md). Security posture (egress,
+supply-chain, lethal-trifecta assessment) is documented in
+[`docs/security-posture.md`](docs/security-posture.md).
 
 ---
 

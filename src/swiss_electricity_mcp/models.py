@@ -170,6 +170,8 @@ class CkanDataset(BaseModel):
 class DatasetSearchResponse(ResponseEnvelope):
     query: str
     total_hits: int
+    match_type: Literal["results", "none"] = "results"
+    suggestion: str | None = None
     datasets: list[CkanDataset]
 
 

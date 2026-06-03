@@ -25,9 +25,11 @@ from .api_client import (
     OPENDATA_SWISS_CKAN,
     ZURICH_OGD_CKAN,
     CkanDiscoveryClient,
+    EgressNotAllowedError,
     ElComSparqlClient,
     EnergyDashboardClient,
     UpstreamUnreachableError,
+    assert_url_allowed,
     sparql_value,
     utc_now_iso,
 )
@@ -335,7 +337,7 @@ async def tariff_list_categories(
 )
 async def tariff_get_by_municipality(
     bfs_nr: Annotated[int, Field(description="BFS-Gemeindenummer (e.g. 261=Zuerich)", ge=1)],
-    category: Annotated[str | None, Field(description="Verbrauchskategorie")] = None,
+    category: Annotated[str | None, Field(description="Verbrauchskategorie", max_length=4)] = None,
     period_from: Annotated[int | None, Field(ge=2009)] = None,
     period_to: Annotated[int | None, Field(le=2100)] = None,
     limit: Annotated[int, Field(ge=1, le=500)] = 100,
@@ -393,7 +395,7 @@ async def tariff_get_by_municipality(
     annotations=_READ_ONLY_EXTERNAL,
 )
 async def tariff_get_median_swiss(
-    category: Annotated[str | None, Field()] = None,
+    category: Annotated[str | None, Field(max_length=4)] = None,
     period_from: Annotated[int | None, Field(ge=2009)] = None,
     period_to: Annotated[int | None, Field(le=2100)] = None,
     limit: Annotated[int, Field(ge=1, le=500)] = 200,
@@ -429,8 +431,8 @@ async def tariff_get_median_swiss(
     annotations=_READ_ONLY_EXTERNAL,
 )
 async def tariff_get_median_canton(
-    canton: Annotated[str, Field(description="Canton name in German")],
-    category: Annotated[str | None, Field()] = None,
+    canton: Annotated[str, Field(description="Canton name in German", min_length=1, max_length=40)],
+    category: Annotated[str | None, Field(max_length=4)] = None,
     period_from: Annotated[int | None, Field(ge=2009)] = None,
     period_to: Annotated[int | None, Field(le=2100)] = None,
     limit: Annotated[int, Field(ge=1, le=500)] = 200,
@@ -473,7 +475,7 @@ async def tariff_get_median_canton(
 )
 async def tariff_compare_municipalities(
     bfs_numbers: Annotated[list[int], Field(min_length=1, max_length=20)],
-    category: Annotated[str, Field(description="Verbrauchskategorie (e.g. C3)")],
+    category: Annotated[str, Field(description="Verbrauchskategorie (e.g. C3)", min_length=1, max_length=4)],
     period: Annotated[int, Field(ge=2009, le=2100)],
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
@@ -515,7 +517,7 @@ async def tariff_compare_municipalities(
     annotations=_READ_ONLY_EXTERNAL,
 )
 async def consumption_search_bfe_datasets(
-    query: Annotated[str, Field(description="Free-text search")],
+    query: Annotated[str, Field(description="Free-text search", min_length=1, max_length=200)],
     bfe_only: Annotated[bool, Field()] = True,
     limit: Annotated[int, Field(ge=1, le=50)] = 20,
     offset: Annotated[int, Field(ge=0)] = 0,
@@ -566,7 +568,7 @@ async def consumption_search_bfe_datasets(
     annotations=_READ_ONLY_EXTERNAL,
 )
 async def consumption_search_zurich(
-    query: Annotated[str, Field()],
+    query: Annotated[str, Field(min_length=1, max_length=200)],
     limit: Annotated[int, Field(ge=1, le=50)] = 10,
     offset: Annotated[int, Field(ge=0)] = 0,
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
@@ -627,6 +629,7 @@ async def electricity_check_status() -> str:
         for name, url in probes:
             t0 = time.monotonic()
             try:
+                assert_url_allowed(url)  # SEC-021: gate every outbound request
                 resp = await http.get(url)
                 latency_ms = int((time.monotonic() - t0) * 1000)
                 results.append(
@@ -638,7 +641,7 @@ async def electricity_check_status() -> str:
                         latency_ms=latency_ms,
                     )
                 )
-            except (httpx.RequestError, httpx.TimeoutException) as exc:
+            except (httpx.RequestError, httpx.TimeoutException, EgressNotAllowedError) as exc:
                 latency_ms = int((time.monotonic() - t0) * 1000)
                 results.append(
                     SourceStatus(

@@ -12,6 +12,7 @@ import asyncio
 import time
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -34,9 +35,77 @@ DEFAULT_TIMEOUT = 30.0
 MAX_RETRIES = 3
 BACKOFF_BASE = 2
 
+# SEC-021 egress allow-list: the only hosts this server is ever allowed to reach.
+# Code-layer control as a frozenset, not config-mutable at runtime. Network-layer
+# egress control (NetworkPolicy / firewall) is the complementary defense-in-depth
+# layer documented in docs/network-egress.md.
+ALLOWED_HOSTS: frozenset[str] = frozenset(
+    {
+        "www.energiedashboard.admin.ch",
+        "lindas.admin.ch",
+        "opendata.swiss",
+        "data.stadt-zuerich.ch",
+    }
+)
+
 
 class UpstreamUnreachableError(Exception):
     """Raised when an upstream is unreachable after exhausted retries."""
+
+
+class EgressNotAllowedError(ValueError):
+    """Raised when an outbound request targets a non-allow-listed host or scheme."""
+
+
+def assert_url_allowed(url: str) -> None:
+    """Pre-request gate (SEC-004/005/021): enforce HTTPS + host allow-list.
+
+    Raises EgressNotAllowedError for any non-HTTPS scheme or any host that is
+    not in ALLOWED_HOSTS. Call this before every outbound request.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise EgressNotAllowedError(
+            f"Only HTTPS is allowed, got scheme {parsed.scheme!r} for {url!r}"
+        )
+    host = parsed.hostname
+    if host not in ALLOWED_HOSTS:
+        raise EgressNotAllowedError(
+            f"Host {host!r} is not in the egress allow-list {sorted(ALLOWED_HOSTS)}"
+        )
+
+
+def _sparql_escape_literal(value: str) -> str:
+    """Escape a string for safe inclusion in a SPARQL double-quoted literal.
+
+    Prevents SPARQL injection (SEC-018) via interpolated tool arguments such as
+    canton/category. Control characters are rejected outright; backslash and
+    double-quote are escaped per SPARQL 1.1 string-literal grammar.
+    """
+    if any(ord(c) < 0x20 for c in value):
+        raise ValueError("Control characters are not allowed in query values")
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+# SEC-018: ElCom Verbrauchskategorien form a closed enumeration. The `category`
+# tool argument is validated against this allow-list before it ever reaches a
+# SPARQL query, rejecting typos and injection attempts alike.
+VALID_CATEGORY_CODES: frozenset[str] = frozenset(
+    {"H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8",
+     "C1", "C2", "C3", "C4", "C5", "C6", "C7"}
+)
+
+
+def _category_filter(category: str | None) -> str:
+    """Build a validated, escaped SPARQL FILTER clause for a category code."""
+    if not category:
+        return ""
+    if category not in VALID_CATEGORY_CODES:
+        raise ValueError(
+            f"Unknown category {category!r}; expected one of "
+            f"{sorted(VALID_CATEGORY_CODES)}"
+        )
+    return f'FILTER(STR(?categoryCode) = "{_sparql_escape_literal(category)}")'
 
 
 async def _fetch_with_retry(
@@ -46,6 +115,7 @@ async def _fetch_with_retry(
     **kwargs: Any,
 ) -> httpx.Response:
     """Retry 3 times on 5xx + network errors; 4xx (except 429) raise immediately."""
+    assert_url_allowed(url)
     last_error: Exception | None = None
     for attempt in range(MAX_RETRIES + 1):
         if attempt > 0:
@@ -214,9 +284,7 @@ class ElComSparqlClient:
         period_to: int | None = None,
         limit: int = 100,
     ) -> tuple[list[dict], str, str]:
-        category_filter = (
-            f'FILTER(STR(?categoryCode) = "{category}")' if category else ""
-        )
+        category_filter = _category_filter(category)
         period_filter = ""
         if period_from is not None:
             period_filter += f"FILTER(?period >= {period_from}) "
@@ -260,9 +328,7 @@ LIMIT {limit}
         period_to: int | None = None,
         limit: int = 200,
     ) -> tuple[list[dict], str, str]:
-        category_filter = (
-            f'FILTER(STR(?categoryCode) = "{category}")' if category else ""
-        )
+        category_filter = _category_filter(category)
         period_filter = ""
         if period_from is not None:
             period_filter += f"FILTER(?period >= {period_from}) "
@@ -292,9 +358,7 @@ LIMIT {limit}
         period_to: int | None = None,
         limit: int = 200,
     ) -> tuple[list[dict], str, str]:
-        category_filter = (
-            f'FILTER(STR(?categoryCode) = "{category}")' if category else ""
-        )
+        category_filter = _category_filter(category)
         period_filter = ""
         if period_from is not None:
             period_filter += f"FILTER(?period >= {period_from}) "
@@ -309,7 +373,7 @@ WHERE {{
        <https://energy.ld.admin.ch/elcom/electricityprice-canton/dimension/category> ?category ;
        <https://energy.ld.admin.ch/elcom/electricityprice-canton/measure/total> ?total .
   ?cantonURI schema:name ?cantonLabel .
-  FILTER(STR(?cantonLabel) = "{canton}")
+  FILTER(STR(?cantonLabel) = "{_sparql_escape_literal(canton)}")
   BIND(REPLACE(STR(?category), ".*/", "") AS ?categoryCode)
   {category_filter}
   {period_filter}

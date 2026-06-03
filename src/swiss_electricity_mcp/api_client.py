@@ -30,7 +30,7 @@ OPENDATA_SWISS_CKAN = "https://opendata.swiss/api/3/action"
 ZURICH_OGD_CKAN = "https://data.stadt-zuerich.ch/api/3/action"
 
 DEFAULT_USER_AGENT = (
-    "swiss-electricity-mcp/0.1.0 (+https://github.com/malkreide/swiss-electricity-mcp)"
+    "swiss-electricity-mcp/0.2.0 (+https://github.com/malkreide/swiss-electricity-mcp)"
 )
 DEFAULT_TIMEOUT = 30.0
 MAX_RETRIES = 3

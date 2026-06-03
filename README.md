@@ -155,14 +155,32 @@ This makes accidental misattribution structurally impossible.
 ## 🧪 Testing
 
 ```bash
-# Unit tests (mocked, fast, CI default)
-PYTHONPATH=src pytest tests/ -m "not live" -v
+# Unit tests (mocked, fast, CI default) — tests/test_unit.py + tests/test_security.py
+PYTHONPATH=src pytest -m "not live" -v
 
-# Live tests (hits real upstreams)
-PYTHONPATH=src pytest tests/ -m live -v
+# Live tests (hits real upstreams) — tests/test_live.py
+PYTHONPATH=src pytest -m live -v
 ```
 
-19 unit tests cover the three contract layers: **Happy** (response parsing), **Retry** (5xx, 429, 4xx), **Timeout** (network errors → clean `UpstreamUnreachableError`), plus envelope/attribution invariants.
+Unit tests cover the contract layers: **Happy** (response parsing), **Retry**
+(5xx, 429, 4xx), **Timeout** (network errors → clean `UpstreamUnreachableError`),
+envelope/attribution invariants, plus **security** (egress allow-list, SPARQL
+escaping, tool-definition lock). CI runs ruff + `pytest -m "not live"` on
+Python 3.11–3.13.
+
+---
+
+## 🔌 MCP protocol version
+
+This server is built on the official MCP Python SDK (`mcp[cli]`), pinned to
+`>=1.2.0,<2.0.0`. The MCP protocol version is negotiated by the SDK at the
+`initialize` handshake; the supported spec version tracks the pinned SDK
+(currently MCP spec `2025-11-25`).
+
+**Update policy:** SDK updates arrive as weekly Dependabot PRs. A protocol-spec
+bump is only adopted via an explicit SDK minor/major bump, recorded in
+[`CHANGELOG.md`](CHANGELOG.md), and verified against the tool-definition lock
+(`tool-definitions.lock.json`).
 
 ---
 

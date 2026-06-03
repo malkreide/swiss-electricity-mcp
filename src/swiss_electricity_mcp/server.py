@@ -9,6 +9,7 @@ Tools are grouped by source:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from contextlib import asynccontextmanager
@@ -114,6 +115,20 @@ def _format_response(model_obj, response_format: str) -> str:
     if response_format == "json":
         return model_obj.model_dump_json(indent=2)
     return _to_markdown(model_obj)
+
+
+def _search_match(total_hits: int, query: str, alt_hint: str) -> tuple[str, str | None]:
+    """ARCH-003: avoid the silent-empty anti-pattern for search tools.
+
+    Returns ``(match_type, suggestion)``. On zero hits, the suggestion is an
+    actionable next step rather than an empty list with no guidance.
+    """
+    if total_hits > 0:
+        return "results", None
+    return "none", (
+        f"No datasets matched '{query}'. Try broader or fewer search terms, "
+        f"check spelling, or {alt_hint}."
+    )
 
 
 def _to_markdown(model_obj) -> str:
@@ -509,15 +524,26 @@ async def tariff_compare_municipalities(
 ) -> str:
     """Tarif-Vergleich mehrerer Gemeinden fuer eine Kategorie und ein Jahr."""
     rows: list[TariffComparisonRow] = []
-    last_prov: str = "sparql"
     total = len(bfs_numbers)
     await ctx.info(f"Comparing {total} municipalities (category {category}, period {period})")
-    for i, bfs in enumerate(bfs_numbers, start=1):
+
+    # ARCH-007: fetch all municipalities concurrently instead of sequentially.
+    done = 0
+
+    async def _fetch(bfs: int):
+        nonlocal done
         bindings, prov, _ = await _elcom.get_tariffs_by_municipality(
             bfs_nr=bfs, category=category, period_from=period, period_to=period, limit=20
         )
+        done += 1
+        await ctx.report_progress(progress=done, total=total)
+        return bfs, bindings, prov
+
+    fetched = await asyncio.gather(*(_fetch(bfs) for bfs in bfs_numbers))
+
+    last_prov: str = "sparql"
+    for bfs, bindings, prov in fetched:
         last_prov = prov
-        await ctx.report_progress(progress=i, total=total)
         for b in bindings:
             rows.append(
                 TariffComparisonRow(
@@ -581,12 +607,18 @@ async def consumption_search_bfe_datasets(
                 landing_page=f"https://opendata.swiss/de/dataset/{r.get('name')}",
             )
         )
+    total_hits = result.get("count", len(datasets))
+    match_type, suggestion = _search_match(
+        total_hits, query, "use consumption_search_zurich for Stadt Zuerich data"
+    )
     response = DatasetSearchResponse(
         source=ATTRIBUTION_OPENDATA_SWISS,
         provenance=prov,
         retrieved_at=retrieved,
         query=query,
-        total_hits=result.get("count", len(datasets)),
+        total_hits=total_hits,
+        match_type=match_type,
+        suggestion=suggestion,
         datasets=datasets,
     )
     return _format_response(response, response_format)
@@ -625,12 +657,18 @@ async def consumption_search_zurich(
                 landing_page=f"https://data.stadt-zuerich.ch/dataset/{r.get('name')}",
             )
         )
+    total_hits = result.get("count", len(datasets))
+    match_type, suggestion = _search_match(
+        total_hits, query, "use consumption_search_bfe_datasets for national BFE data"
+    )
     response = DatasetSearchResponse(
         source=ATTRIBUTION_ZURICH,
         provenance=prov,
         retrieved_at=retrieved,
         query=query,
-        total_hits=result.get("count", len(datasets)),
+        total_hits=total_hits,
+        match_type=match_type,
+        suggestion=suggestion,
         datasets=datasets,
     )
     return _format_response(response, response_format)

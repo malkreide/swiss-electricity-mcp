@@ -3,12 +3,20 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 import httpx
 import respx
 
-from swiss_electricity_mcp.api_client import LINDAS_SPARQL, ZURICH_OGD_CKAN
+from swiss_electricity_mcp.api_client import (
+    LINDAS_SPARQL,
+    ZURICH_OGD_CKAN,
+    CkanDiscoveryClient,
+    ElComSparqlClient,
+    EnergyDashboardClient,
+)
 from swiss_electricity_mcp.server import (
+    AppContext,
     consumption_search_zurich,
     tariff_compare_municipalities,
 )
@@ -34,10 +42,16 @@ _ELCOM_ONE_ROW = {
 
 
 class FakeCtx:
-    """Minimal Context stand-in for unit-testing ctx-using tools."""
+    """Minimal Context stand-in exposing lifespan-scoped clients (ARCH-004)."""
 
     def __init__(self) -> None:
         self.progress: list[tuple[int, int]] = []
+        app = AppContext(
+            dashboard=EnergyDashboardClient(),
+            elcom=ElComSparqlClient(),
+            ckan=CkanDiscoveryClient(),
+        )
+        self.request_context = SimpleNamespace(lifespan_context=app)
 
     async def info(self, *args, **kwargs) -> None:
         return None
@@ -56,7 +70,9 @@ class TestSearchNotFound:
                 200, json={"success": True, "result": {"count": 0, "results": []}}
             )
         )
-        out = await consumption_search_zurich(query="zzz-nope", response_format="json")
+        out = await consumption_search_zurich(
+            ctx=FakeCtx(), query="zzz-nope", response_format="json"
+        )
         payload = json.loads(out)
         assert payload["match_type"] == "none"
         assert payload["suggestion"]
@@ -77,7 +93,9 @@ class TestSearchNotFound:
             )
         )
         payload = json.loads(
-            await consumption_search_zurich(query="energie", response_format="json")
+            await consumption_search_zurich(
+                ctx=FakeCtx(), query="energie", response_format="json"
+            )
         )
         assert payload["match_type"] == "results"
         assert payload["suggestion"] is None

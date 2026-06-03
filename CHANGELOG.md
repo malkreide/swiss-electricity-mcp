@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **ARCH-004**: Configuration is centralised in a Pydantic-Settings object
+  (`config.py`); the shared HTTP clients moved from module-level globals into the
+  lifespan context and are accessed by tools via `ctx.request_context.lifespan_context`.
+
 ### Documentation
 
 - **OPS-002**: ASCII architecture diagram in the README.

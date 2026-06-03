@@ -13,6 +13,7 @@ import asyncio
 import json
 import time
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from typing import Annotated, Literal
 
 import httpx
@@ -34,6 +35,7 @@ from .api_client import (
     sparql_value,
     utc_now_iso,
 )
+from .config import get_settings
 from .models import (
     ATTRIBUTION_BFE,
     ATTRIBUTION_ELCOM,
@@ -68,31 +70,44 @@ from .observability import (
     traced_tool,
 )
 
-# Shared HTTP clients, reused across all tool calls (no per-call client creation).
-# Their lifecycle is owned by the lifespan context manager below, which closes
-# them cleanly on server shutdown.
-_dashboard = EnergyDashboardClient()
-_elcom = ElComSparqlClient()
-_ckan = CkanDiscoveryClient()
-
 # Annotation presets: every tool is read-only. Tools that reach an external
 # upstream are open-world; the static category list is closed-world.
 _READ_ONLY_EXTERNAL = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
 _READ_ONLY_STATIC = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
 
 
+@dataclass
+class AppContext:
+    """Long-lived HTTP clients, created once per server lifespan (no module globals)."""
+
+    dashboard: EnergyDashboardClient
+    elcom: ElComSparqlClient
+    ckan: CkanDiscoveryClient
+
+
+def _app(ctx: Context) -> AppContext:
+    """Access the lifespan-scoped clients through the request context (ARCH-004)."""
+    return ctx.request_context.lifespan_context
+
+
 @asynccontextmanager
 async def lifespan(_server: FastMCP):
     """Set up logging + tracing and own the shared HTTP clients' lifecycle."""
-    configure_logging()
+    settings = get_settings()
+    configure_logging(settings.log_level)
     setup_telemetry()  # no-op unless OTEL_EXPORTER_OTLP_ENDPOINT is set
-    get_logger().info("server_starting", tools=12)
+    clients = AppContext(
+        dashboard=EnergyDashboardClient(),
+        elcom=ElComSparqlClient(),
+        ckan=CkanDiscoveryClient(),
+    )
+    get_logger().info("server_starting", tools=12, transport=settings.transport)
     try:
-        yield
+        yield clients
     finally:
-        await _dashboard.aclose()
-        await _elcom.aclose()
-        await _ckan.aclose()
+        await clients.dashboard.aclose()
+        await clients.elcom.aclose()
+        await clients.ckan.aclose()
         shutdown_telemetry()
         get_logger().info("server_stopped")
 
@@ -177,13 +192,14 @@ def _to_markdown(model_obj) -> str:
 )
 @traced_tool
 async def dashboard_get_production_mix(
+    ctx: Context,
     response_format: Annotated[
         Literal["json", "markdown"],
         Field(description="Output format. 'json' for processing, 'markdown' for display."),
     ] = "markdown",
 ) -> str:
     """Aktueller Schweizer Strom-Produktionsmix pro Jahr (Anteile + TWh)."""
-    data, prov, retrieved = await _dashboard.get_production_mix()
+    data, prov, retrieved = await _app(ctx).dashboard.get_production_mix()
     years: list[ProductionMixYear] = []
     for year_str, payload in sorted(data.items()):
         try:
@@ -224,11 +240,12 @@ async def dashboard_get_production_mix(
 )
 @traced_tool
 async def dashboard_get_consumption_forecast(
+    ctx: Context,
     limit_days: Annotated[int, Field(ge=1, le=400)] = 90,
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Stromverbrauchs-Prognose Schweiz mit 5-Jahres-Vergleich."""
-    data, prov, retrieved = await _dashboard.get_consumption_forecast()
+    data, prov, retrieved = await _app(ctx).dashboard.get_consumption_forecast()
     current = data.get("currentEntry") or {}
     entries = data.get("entries") or []
     parsed = [
@@ -266,6 +283,7 @@ async def dashboard_get_consumption_forecast(
 )
 @traced_tool
 async def dashboard_get_storage_lakes(
+    ctx: Context,
     region: Annotated[
         Literal["totalCH", "Wallis", "Tessin", "Graubuenden", "ZentralOst"],
         Field(description="Region selector."),
@@ -274,7 +292,7 @@ async def dashboard_get_storage_lakes(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Speicherseen-Fuellstand (Wochenwerte) fuer Schweiz oder Region."""
-    data, prov, retrieved = await _dashboard.get_storage_lakes()
+    data, prov, retrieved = await _app(ctx).dashboard.get_storage_lakes()
     block = data.get(region) or data.get("totalCH") or {}
     current = block.get("currentEntry") or {}
     entries = block.get("entries") or []
@@ -312,11 +330,12 @@ async def dashboard_get_storage_lakes(
 )
 @traced_tool
 async def dashboard_get_consumer_price_index(
+    ctx: Context,
     limit_months: Annotated[int, Field(ge=1, le=200)] = 60,
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Endverbraucher-Strompreis-Index (Index 2020-01-01 = 100)."""
-    data, prov, retrieved = await _dashboard.get_consumer_price_index()
+    data, prov, retrieved = await _app(ctx).dashboard.get_consumer_price_index()
     series = data if isinstance(data, list) else []
     parsed = [
         IndexedPriceEntry(date=e.get("date", ""), preis_indexiert=e.get("preisIndexiert"))
@@ -379,7 +398,7 @@ async def tariff_get_by_municipality(
 ) -> str:
     """ElCom-Tarif-Beobachtungen fuer eine Gemeinde."""
     await ctx.info(f"Querying ElCom tariffs for BFS {bfs_nr} via LINDAS SPARQL")
-    bindings, prov, retrieved = await _elcom.get_tariffs_by_municipality(
+    bindings, prov, retrieved = await _app(ctx).elcom.get_tariffs_by_municipality(
         bfs_nr=bfs_nr,
         category=category,
         period_from=period_from,
@@ -440,7 +459,7 @@ async def tariff_get_median_swiss(
 ) -> str:
     """Schweizer Median-Tarif als Vergleichswert."""
     await ctx.info("Querying Swiss median tariff via LINDAS SPARQL")
-    bindings, prov, retrieved = await _elcom.get_median_swiss(
+    bindings, prov, retrieved = await _app(ctx).elcom.get_median_swiss(
         category=category, period_from=period_from, period_to=period_to, limit=limit
     )
     entries = [
@@ -480,7 +499,7 @@ async def tariff_get_median_canton(
 ) -> str:
     """Kantonaler Median-Tarif."""
     await ctx.info(f"Querying cantonal median tariff for {canton} via LINDAS SPARQL")
-    bindings, prov, retrieved = await _elcom.get_median_canton(
+    bindings, prov, retrieved = await _app(ctx).elcom.get_median_canton(
         canton=canton,
         category=category,
         period_from=period_from,
@@ -532,7 +551,7 @@ async def tariff_compare_municipalities(
 
     async def _fetch(bfs: int):
         nonlocal done
-        bindings, prov, _ = await _elcom.get_tariffs_by_municipality(
+        bindings, prov, _ = await _app(ctx).elcom.get_tariffs_by_municipality(
             bfs_nr=bfs, category=category, period_from=period, period_to=period, limit=20
         )
         done += 1
@@ -575,6 +594,7 @@ async def tariff_compare_municipalities(
 )
 @traced_tool
 async def consumption_search_bfe_datasets(
+    ctx: Context,
     query: Annotated[str, Field(description="Free-text search", min_length=1, max_length=200)],
     bfe_only: Annotated[bool, Field()] = True,
     limit: Annotated[int, Field(ge=1, le=50)] = 20,
@@ -582,7 +602,7 @@ async def consumption_search_bfe_datasets(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Suche nach BFE-Datensaetzen auf opendata.swiss."""
-    data, prov, retrieved = await _ckan.search_opendata_swiss(
+    data, prov, retrieved = await _app(ctx).ckan.search_opendata_swiss(
         query=query, rows=limit, offset=offset, bfe_only=bfe_only
     )
     if not data.get("success"):
@@ -633,13 +653,14 @@ async def consumption_search_bfe_datasets(
 )
 @traced_tool
 async def consumption_search_zurich(
+    ctx: Context,
     query: Annotated[str, Field(min_length=1, max_length=200)],
     limit: Annotated[int, Field(ge=1, le=50)] = 10,
     offset: Annotated[int, Field(ge=0)] = 0,
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Suche im Stadt-Zuerich-OGD-Portal."""
-    data, prov, retrieved = await _ckan.search_zurich(query=query, rows=limit, offset=offset)
+    data, prov, retrieved = await _app(ctx).ckan.search_zurich(query=query, rows=limit, offset=offset)
     if not data.get("success"):
         raise UpstreamUnreachableError("data.stadt-zuerich.ch returned success=false")
     result = data.get("result") or {}

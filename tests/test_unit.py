@@ -327,7 +327,11 @@ class TestNetworkErrorHandling:
         try:
             with pytest.raises(UpstreamUnreachableError) as exc_info:
                 await client.get_production_mix()
-            assert "Upstream unreachable" in str(exc_info.value)
+            msg = str(exc_info.value)
+            # OBS-002: generic message, no leaked internal repr / URL / host.
+            assert "temporarily unavailable" in msg
+            assert "ConnectTimeout" not in msg
+            assert "energiedashboard" not in msg
         finally:
             await client.aclose()
 

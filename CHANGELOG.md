@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Observability
+
+- **OBS-003 / OBS-004**: Structured JSON logging via `structlog`, written to
+  **stderr** so the stdio JSON-RPC channel stays clean. Level via
+  `SWISS_ELECTRICITY_LOG_LEVEL`.
+- **OBS-006**: Opt-in OpenTelemetry tracing — per-tool spans plus httpx
+  auto-instrumentation, enabled when `OTEL_EXPORTER_OTLP_ENDPOINT` is set and
+  the `otel` extra is installed. No-op otherwise.
+- **OBS-002**: Upstream errors and status-probe failures are logged with full
+  detail server-side but return a generic message to the client (no leaked
+  stacktrace / internal repr).
+- **OBS-001**: Added execution- and protocol-error-path tests.
+
+### SDK
+
+- **SDK-003**: SPARQL-backed tools accept `ctx: Context`; `tariff_compare_*`
+  reports per-municipality progress, others emit `ctx.info` start events.
+- **SDK-004**: Streamable-HTTP transport now runs behind CORS middleware that
+  exposes/allows `Mcp-Session-Id`; origins via `SWISS_ELECTRICITY_CORS_ORIGINS`
+  (never a wildcard).
+
 ### Security
 
 - **SEC-016**: HTTP host now defaults to `127.0.0.1` instead of `0.0.0.0`.

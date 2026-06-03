@@ -126,6 +126,33 @@ docker run --rm -p 8000:8000 swiss-electricity-mcp
 
 ---
 
+## 🔭 Observability & configuration
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `SWISS_ELECTRICITY_TRANSPORT` | `stdio` | `stdio` or `streamable-http` |
+| `SWISS_ELECTRICITY_HOST` | `127.0.0.1` | HTTP bind host (`0.0.0.0` in containers only) |
+| `SWISS_ELECTRICITY_PORT` | `8000` | HTTP port |
+| `SWISS_ELECTRICITY_LOG_LEVEL` | `INFO` | Log level (DEBUG/INFO/WARNING/ERROR) |
+| `SWISS_ELECTRICITY_CORS_ORIGINS` | _(empty)_ | Comma-separated allowed CORS origins (browser clients); never `*` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | _(unset)_ | Enables OpenTelemetry tracing when set |
+| `SWISS_ELECTRICITY_ENV` | `unknown` | `deployment.environment` resource attribute for traces |
+
+- **Logging** is structured JSON on **stderr** (stdout is reserved for the stdio
+  JSON-RPC channel). Upstream failures are logged in full server-side but masked
+  in client-facing responses.
+- **Tracing** is opt-in. Install the extra and point it at a collector:
+
+  ```bash
+  pip install "swiss-electricity-mcp[otel]"
+  OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 swiss-electricity-mcp
+  ```
+
+  You get one span per tool call (`mcp.tool.<name>`) plus automatic httpx child
+  spans for each upstream request. No argument values or PII are recorded.
+
+---
+
 ## 🏗️ Architecture
 
 **Hybrid (live API + SPARQL + CKAN discovery)**, no authentication. Three reasons this is the right shape:

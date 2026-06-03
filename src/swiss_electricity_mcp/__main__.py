@@ -11,21 +11,17 @@ as the implicit default (NeighborJack / SEC-016).
 For browser-based clients, allowed CORS origins are configured via
 SWISS_ELECTRICITY_CORS_ORIGINS (comma-separated). The default is empty
 (same-origin only) — never a wildcard (SDK-004).
+
+All configuration is read through the Settings object in config.py (ARCH-004).
 """
 
 from __future__ import annotations
 
-import os
-
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 
+from .config import get_settings
 from .server import mcp
-
-
-def _cors_origins() -> list[str]:
-    raw = os.environ.get("SWISS_ELECTRICITY_CORS_ORIGINS", "").strip()
-    return [o.strip() for o in raw.split(",") if o.strip()]
 
 
 def build_http_app(origins: list[str] | None = None) -> Starlette:
@@ -36,7 +32,7 @@ def build_http_app(origins: list[str] | None = None) -> Starlette:
     can send it back on follow-up requests (SDK-004).
     """
     if origins is None:
-        origins = _cors_origins()
+        origins = get_settings().cors_origins
     app = mcp.streamable_http_app()
     app.add_middleware(
         CORSMiddleware,
@@ -50,13 +46,13 @@ def build_http_app(origins: list[str] | None = None) -> Starlette:
 
 
 def main() -> None:
-    transport = os.environ.get("SWISS_ELECTRICITY_TRANSPORT", "stdio").lower()
-    if transport in {"http", "streamable-http", "sse"}:
+    settings = get_settings()
+    if settings.transport.lower() in {"http", "streamable-http", "sse"}:
         import uvicorn
 
-        host = os.environ.get("SWISS_ELECTRICITY_HOST", "127.0.0.1")
-        port = int(os.environ.get("SWISS_ELECTRICITY_PORT", "8000"))
-        uvicorn.run(build_http_app(), host=host, port=port)
+        mcp.settings.host = settings.host
+        mcp.settings.port = settings.port
+        uvicorn.run(build_http_app(), host=settings.host, port=settings.port)
     else:
         mcp.run(transport="stdio")
 

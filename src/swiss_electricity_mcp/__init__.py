@@ -3,4 +3,4 @@
 Part of the Swiss Public Data MCP Portfolio.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

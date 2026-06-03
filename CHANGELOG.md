@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-03
+
+Audit-remediation release. Closes all critical/high findings from the
+`mcp-audit-skill` audit; the re-audit reports **production-ready**
+(36 pass · 0 fail · 2 partial · 6 todo, catalog hash `091f446b`,
+run-id `2026-06-03T191138-Z-swiss-electricity-mcp`).
+
 ### Changed
 
 - **ARCH-004**: Configuration is centralised in a Pydantic-Settings object

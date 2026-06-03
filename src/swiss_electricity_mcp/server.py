@@ -717,7 +717,7 @@ async def electricity_check_status() -> str:
     results: list[SourceStatus] = []
     async with httpx.AsyncClient(
         timeout=10.0,
-        headers={"User-Agent": "swiss-electricity-mcp/0.1.0 status-probe"},
+        headers={"User-Agent": "swiss-electricity-mcp/0.2.0 status-probe"},
     ) as http:
         for name, url in probes:
             t0 = time.monotonic()

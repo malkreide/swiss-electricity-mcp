@@ -1,2 +1,2 @@
 server_name,audit_status,findings,last_audit_run,last_audit_at,production_ready,released_version,notes
-swiss-electricity-mcp,Findings dokumentiert,28,2026-06-03T175129-Z-swiss-electricity-mcp,2026-06-03,False,,
+swiss-electricity-mcp,Re-audited (production-ready),2,2026-06-03T191138-Z-swiss-electricity-mcp,2026-06-03,True,,

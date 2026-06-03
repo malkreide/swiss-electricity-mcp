@@ -3,6 +3,10 @@
 Transport selected via SWISS_ELECTRICITY_TRANSPORT env var:
 - stdio (default): for Claude Desktop and local IDE clients
 - streamable-http: for cloud / remote deployments (Render, Railway, etc.)
+
+The HTTP host defaults to 127.0.0.1 (loopback only). Bind to all interfaces
+explicitly via SWISS_ELECTRICITY_HOST=0.0.0.0 inside a container only — never
+as the implicit default (NeighborJack / SEC-016).
 """
 
 from __future__ import annotations
@@ -15,7 +19,7 @@ from .server import mcp
 def main() -> None:
     transport = os.environ.get("SWISS_ELECTRICITY_TRANSPORT", "stdio").lower()
     if transport in {"http", "streamable-http", "sse"}:
-        host = os.environ.get("SWISS_ELECTRICITY_HOST", "0.0.0.0")
+        host = os.environ.get("SWISS_ELECTRICITY_HOST", "127.0.0.1")
         port = int(os.environ.get("SWISS_ELECTRICITY_PORT", "8000"))
         mcp.settings.host = host
         mcp.settings.port = port

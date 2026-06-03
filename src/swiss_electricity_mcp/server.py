@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import json
 import time
+from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from .api_client import (
@@ -56,6 +58,30 @@ from .models import (
     TariffResponse,
 )
 
+# Shared HTTP clients, reused across all tool calls (no per-call client creation).
+# Their lifecycle is owned by the lifespan context manager below, which closes
+# them cleanly on server shutdown.
+_dashboard = EnergyDashboardClient()
+_elcom = ElComSparqlClient()
+_ckan = CkanDiscoveryClient()
+
+# Annotation presets: every tool is read-only. Tools that reach an external
+# upstream are open-world; the static category list is closed-world.
+_READ_ONLY_EXTERNAL = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+_READ_ONLY_STATIC = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
+
+
+@asynccontextmanager
+async def lifespan(_server: FastMCP):
+    """Own the lifecycle of the shared HTTP clients; close them on shutdown."""
+    try:
+        yield
+    finally:
+        await _dashboard.aclose()
+        await _elcom.aclose()
+        await _ckan.aclose()
+
+
 mcp = FastMCP(
     name="swiss-electricity-mcp",
     instructions=(
@@ -65,11 +91,8 @@ mcp = FastMCP(
         "Every response includes source attribution and provenance - quote them. "
         "Category C3 (~150'000 kWh/a) is the typical reference for school buildings."
     ),
+    lifespan=lifespan,
 )
-
-_dashboard = EnergyDashboardClient()
-_elcom = ElComSparqlClient()
-_ckan = CkanDiscoveryClient()
 
 
 def _format_response(model_obj, response_format: str) -> str:
@@ -121,6 +144,7 @@ def _to_markdown(model_obj) -> str:
         "Get the Swiss electricity production mix (Kernkraft, Wasserkraft, PV, Wind ...) "
         "by year, with absolute TWh and percentage shares. Source: Energiedashboard.ch (BFE)."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def dashboard_get_production_mix(
     response_format: Annotated[
@@ -166,6 +190,7 @@ async def dashboard_get_production_mix(
         "5-day-ahead forecast, trend signal, and 5-year-window comparison series. "
         "Source: Energiedashboard.ch (BFE)."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def dashboard_get_consumption_forecast(
     limit_days: Annotated[int, Field(ge=1, le=400)] = 90,
@@ -206,6 +231,7 @@ async def dashboard_get_consumption_forecast(
         "current fill in % and GWh, 5-year envelope, full time series. "
         "Critical indicator for winter supply security."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def dashboard_get_storage_lakes(
     region: Annotated[
@@ -250,6 +276,7 @@ async def dashboard_get_storage_lakes(
         "Get the Endverbraucher-Strompreis-Index (consumer electricity price index, "
         "indexed to 2020-01-01 = 100). Monthly time series."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def dashboard_get_consumer_price_index(
     limit_months: Annotated[int, Field(ge=1, le=200)] = 60,
@@ -276,6 +303,7 @@ async def dashboard_get_consumer_price_index(
         "List the standard ElCom Verbrauchskategorien (H1-H8 households, C1-C7 commercial). "
         "Use C3 for typical school buildings (~150'000 kWh/year). Static data, no upstream call."
     ),
+    annotations=_READ_ONLY_STATIC,
 )
 async def tariff_list_categories(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
@@ -303,6 +331,7 @@ async def tariff_list_categories(
         "Filterable by category (e.g. C3 for schools) and year range. "
         "Example: bfs_nr=261 for Zuerich, category='C3', period_from=2019."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def tariff_get_by_municipality(
     bfs_nr: Annotated[int, Field(description="BFS-Gemeindenummer (e.g. 261=Zuerich)", ge=1)],
@@ -361,6 +390,7 @@ async def tariff_get_by_municipality(
         "Get Swiss median electricity tariff (across all distribution operators) by "
         "year and category. Useful as benchmark for individual municipality tariffs."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def tariff_get_median_swiss(
     category: Annotated[str | None, Field()] = None,
@@ -396,6 +426,7 @@ async def tariff_get_median_swiss(
         "Get cantonal median electricity tariff. Useful to position a municipality "
         "against its canton. Pass canton name in German (e.g. 'Zuerich', 'Bern')."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def tariff_get_median_canton(
     canton: Annotated[str, Field(description="Canton name in German")],
@@ -438,6 +469,7 @@ async def tariff_get_median_canton(
         "category and year. One row per (municipality, operator). Useful for procurement, "
         "benchmarking, school-network analysis."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def tariff_compare_municipalities(
     bfs_numbers: Annotated[list[int], Field(min_length=1, max_length=20)],
@@ -480,6 +512,7 @@ async def tariff_compare_municipalities(
         "Search opendata.swiss CKAN for energy / electricity datasets. Filter by BFE "
         "organisation. Use to find raw datasets not covered by other tools."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def consumption_search_bfe_datasets(
     query: Annotated[str, Field(description="Free-text search")],
@@ -530,6 +563,7 @@ async def consumption_search_bfe_datasets(
         "Search the Stadt Zuerich OGD catalogue for energy datasets, including the "
         "quarter-hour consumption time series for grid levels NE5 and NE7."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def consumption_search_zurich(
     query: Annotated[str, Field()],
@@ -575,6 +609,7 @@ async def consumption_search_zurich(
         "Check liveness of all four upstream sources. Returns HTTP status, latency, "
         "and an overall-healthy flag."
     ),
+    annotations=_READ_ONLY_EXTERNAL,
 )
 async def electricity_check_status() -> str:
     """Liveness-Check aller Upstream-Quellen."""

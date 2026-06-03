@@ -108,6 +108,22 @@ swiss-electricity-mcp
 
 Works on Render.com, Railway, Fly.io.
 
+> **Host binding (security).** In HTTP mode the host defaults to `127.0.0.1`
+> (loopback only). Bind to all interfaces with `SWISS_ELECTRICITY_HOST=0.0.0.0`
+> **only inside a container**, where the network boundary is the container, not
+> the host. Setting `0.0.0.0` on a developer machine exposes the server to the
+> local network (NeighborJack).
+
+### Docker
+
+A multi-stage `Dockerfile` is provided. It runs as a non-root user (UID 10001)
+and sets `SWISS_ELECTRICITY_HOST=0.0.0.0` explicitly for the containerised case.
+
+```bash
+docker build -t swiss-electricity-mcp .
+docker run --rm -p 8000:8000 swiss-electricity-mcp
+```
+
 ---
 
 ## 🏗️ Architecture

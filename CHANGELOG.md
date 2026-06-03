@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- **SEC-016**: HTTP host now defaults to `127.0.0.1` instead of `0.0.0.0`.
+  Bind to all interfaces explicitly via `SWISS_ELECTRICITY_HOST=0.0.0.0` inside
+  a container only (prevents NeighborJack exposure on developer machines).
+- **SEC-007**: Added a multi-stage `Dockerfile` that runs as a non-root user
+  (UID 10001) with a `HEALTHCHECK`.
+
+### Changed
+
+- **ARCH-009**: All 12 tools now declare explicit MCP annotations
+  (`readOnlyHint=true`; `openWorldHint=true` for upstream-reaching tools,
+  `false` for the static category list).
+- **SDK-001**: Shared HTTP clients are now closed cleanly on shutdown via a
+  FastMCP `lifespan` context manager.
+
 ## [0.1.0] - 2026-05-21
 
 ### Added

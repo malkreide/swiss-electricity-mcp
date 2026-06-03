@@ -24,6 +24,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SEC-022**: Tool definitions are pinned in `tool-definitions.lock.json`; a
   test fails if the tool surface drifts without regenerating the lock.
 
+### Added
+
+- **ARCH-011 / OPS-001**: CI workflows — `test.yml` (ruff + `pytest -m "not live"`
+  on Python 3.11–3.13) and `publish.yml` (PyPI OIDC Trusted Publisher on release).
+- **ARCH-005**: `secret-scan.yml` runs Gitleaks on every push and PR.
+- **ARCH-012**: Dependabot (`pip` + `github-actions`, weekly) and a
+  "MCP protocol version" section + update policy in the README.
+
+### Changed
+
+- **OPS-001**: Tests split into `tests/test_unit.py` (mocked, CI) and
+  `tests/test_live.py` (live, excluded from CI).
+- **ARCH-012**: `mcp[cli]` pinned to `>=1.2.0,<2.0.0`.
+
 ### Changed
 
 - **ARCH-009**: All 12 tools now declare explicit MCP annotations

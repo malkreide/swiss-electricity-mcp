@@ -1,10 +1,8 @@
-"""Tests for swiss-electricity-mcp.
+"""Unit tests for swiss-electricity-mcp (mocked upstreams, CI default).
 
-Run unit tests (CI default):
-    PYTHONPATH=src pytest tests/ -m "not live" -v
+    pytest -m "not live"
 
-Run live tests against real upstreams:
-    PYTHONPATH=src pytest tests/ -m live -v
+Live tests live in tests/test_live.py.
 """
 
 from __future__ import annotations
@@ -393,42 +391,3 @@ class TestResponseEnvelope:
         )
         assert obs.period == 2025
         assert obs.municipality_bfs_nr == 261
-
-
-# ============================================================================
-# Live tests
-# ============================================================================
-
-
-@pytest.mark.live
-class TestLiveEndpoints:
-    async def test_energiedashboard_production_mix_live(self):
-        client = EnergyDashboardClient()
-        try:
-            data, prov, _ = await client.get_production_mix()
-            assert prov in {"live_api", "cached"}
-            assert any(k.startswith("20") for k in data.keys())
-        finally:
-            await client.aclose()
-
-    async def test_elcom_zurich_tariffs_live(self):
-        client = ElComSparqlClient()
-        try:
-            bindings, prov, _ = await client.get_tariffs_by_municipality(
-                bfs_nr=261, period_from=2019, period_to=2025, limit=10
-            )
-            assert prov in {"sparql", "cached"}
-            assert len(bindings) >= 1
-        finally:
-            await client.aclose()
-
-    async def test_opendata_swiss_bfe_search_live(self):
-        client = CkanDiscoveryClient()
-        try:
-            data, prov, _ = await client.search_opendata_swiss(
-                query="stromverbrauch", bfe_only=True
-            )
-            assert prov in {"live_api", "cached"}
-            assert data.get("success") is True
-        finally:
-            await client.aclose()

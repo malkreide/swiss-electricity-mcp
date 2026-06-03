@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError
 
 from swiss_electricity_mcp import observability
 from swiss_electricity_mcp.__main__ import build_http_app
@@ -71,7 +72,7 @@ class TestToolErrorPaths:
 
     async def test_protocol_error_on_invalid_args(self):
         # Out-of-range argument must be rejected by schema validation.
-        with pytest.raises(Exception):
+        with pytest.raises(ToolError):
             await mcp_call("dashboard_get_consumption_forecast", {"limit_days": 99999})
 
 

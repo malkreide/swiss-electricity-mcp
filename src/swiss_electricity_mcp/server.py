@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
@@ -59,6 +59,13 @@ from .models import (
     TariffObservation,
     TariffResponse,
 )
+from .observability import (
+    configure_logging,
+    get_logger,
+    setup_telemetry,
+    shutdown_telemetry,
+    traced_tool,
+)
 
 # Shared HTTP clients, reused across all tool calls (no per-call client creation).
 # Their lifecycle is owned by the lifespan context manager below, which closes
@@ -75,13 +82,18 @@ _READ_ONLY_STATIC = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
 
 @asynccontextmanager
 async def lifespan(_server: FastMCP):
-    """Own the lifecycle of the shared HTTP clients; close them on shutdown."""
+    """Set up logging + tracing and own the shared HTTP clients' lifecycle."""
+    configure_logging()
+    setup_telemetry()  # no-op unless OTEL_EXPORTER_OTLP_ENDPOINT is set
+    get_logger().info("server_starting", tools=12)
     try:
         yield
     finally:
         await _dashboard.aclose()
         await _elcom.aclose()
         await _ckan.aclose()
+        shutdown_telemetry()
+        get_logger().info("server_stopped")
 
 
 mcp = FastMCP(
@@ -148,6 +160,7 @@ def _to_markdown(model_obj) -> str:
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def dashboard_get_production_mix(
     response_format: Annotated[
         Literal["json", "markdown"],
@@ -194,6 +207,7 @@ async def dashboard_get_production_mix(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def dashboard_get_consumption_forecast(
     limit_days: Annotated[int, Field(ge=1, le=400)] = 90,
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
@@ -235,6 +249,7 @@ async def dashboard_get_consumption_forecast(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def dashboard_get_storage_lakes(
     region: Annotated[
         Literal["totalCH", "Wallis", "Tessin", "Graubuenden", "ZentralOst"],
@@ -280,6 +295,7 @@ async def dashboard_get_storage_lakes(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def dashboard_get_consumer_price_index(
     limit_months: Annotated[int, Field(ge=1, le=200)] = 60,
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
@@ -307,6 +323,7 @@ async def dashboard_get_consumer_price_index(
     ),
     annotations=_READ_ONLY_STATIC,
 )
+@traced_tool
 async def tariff_list_categories(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
@@ -335,7 +352,9 @@ async def tariff_list_categories(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def tariff_get_by_municipality(
+    ctx: Context,
     bfs_nr: Annotated[int, Field(description="BFS-Gemeindenummer (e.g. 261=Zuerich)", ge=1)],
     category: Annotated[str | None, Field(description="Verbrauchskategorie", max_length=4)] = None,
     period_from: Annotated[int | None, Field(ge=2009)] = None,
@@ -344,6 +363,7 @@ async def tariff_get_by_municipality(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """ElCom-Tarif-Beobachtungen fuer eine Gemeinde."""
+    await ctx.info(f"Querying ElCom tariffs for BFS {bfs_nr} via LINDAS SPARQL")
     bindings, prov, retrieved = await _elcom.get_tariffs_by_municipality(
         bfs_nr=bfs_nr,
         category=category,
@@ -394,7 +414,9 @@ async def tariff_get_by_municipality(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def tariff_get_median_swiss(
+    ctx: Context,
     category: Annotated[str | None, Field(max_length=4)] = None,
     period_from: Annotated[int | None, Field(ge=2009)] = None,
     period_to: Annotated[int | None, Field(le=2100)] = None,
@@ -402,6 +424,7 @@ async def tariff_get_median_swiss(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Schweizer Median-Tarif als Vergleichswert."""
+    await ctx.info("Querying Swiss median tariff via LINDAS SPARQL")
     bindings, prov, retrieved = await _elcom.get_median_swiss(
         category=category, period_from=period_from, period_to=period_to, limit=limit
     )
@@ -430,7 +453,9 @@ async def tariff_get_median_swiss(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def tariff_get_median_canton(
+    ctx: Context,
     canton: Annotated[str, Field(description="Canton name in German", min_length=1, max_length=40)],
     category: Annotated[str | None, Field(max_length=4)] = None,
     period_from: Annotated[int | None, Field(ge=2009)] = None,
@@ -439,6 +464,7 @@ async def tariff_get_median_canton(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Kantonaler Median-Tarif."""
+    await ctx.info(f"Querying cantonal median tariff for {canton} via LINDAS SPARQL")
     bindings, prov, retrieved = await _elcom.get_median_canton(
         canton=canton,
         category=category,
@@ -473,7 +499,9 @@ async def tariff_get_median_canton(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def tariff_compare_municipalities(
+    ctx: Context,
     bfs_numbers: Annotated[list[int], Field(min_length=1, max_length=20)],
     category: Annotated[str, Field(description="Verbrauchskategorie (e.g. C3)", min_length=1, max_length=4)],
     period: Annotated[int, Field(ge=2009, le=2100)],
@@ -482,11 +510,14 @@ async def tariff_compare_municipalities(
     """Tarif-Vergleich mehrerer Gemeinden fuer eine Kategorie und ein Jahr."""
     rows: list[TariffComparisonRow] = []
     last_prov: str = "sparql"
-    for bfs in bfs_numbers:
+    total = len(bfs_numbers)
+    await ctx.info(f"Comparing {total} municipalities (category {category}, period {period})")
+    for i, bfs in enumerate(bfs_numbers, start=1):
         bindings, prov, _ = await _elcom.get_tariffs_by_municipality(
             bfs_nr=bfs, category=category, period_from=period, period_to=period, limit=20
         )
         last_prov = prov
+        await ctx.report_progress(progress=i, total=total)
         for b in bindings:
             rows.append(
                 TariffComparisonRow(
@@ -516,6 +547,7 @@ async def tariff_compare_municipalities(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def consumption_search_bfe_datasets(
     query: Annotated[str, Field(description="Free-text search", min_length=1, max_length=200)],
     bfe_only: Annotated[bool, Field()] = True,
@@ -567,6 +599,7 @@ async def consumption_search_bfe_datasets(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def consumption_search_zurich(
     query: Annotated[str, Field(min_length=1, max_length=200)],
     limit: Annotated[int, Field(ge=1, le=50)] = 10,
@@ -613,6 +646,7 @@ async def consumption_search_zurich(
     ),
     annotations=_READ_ONLY_EXTERNAL,
 )
+@traced_tool
 async def electricity_check_status() -> str:
     """Liveness-Check aller Upstream-Quellen."""
     probes = [
@@ -643,6 +677,10 @@ async def electricity_check_status() -> str:
                 )
             except (httpx.RequestError, httpx.TimeoutException, EgressNotAllowedError) as exc:
                 latency_ms = int((time.monotonic() - t0) * 1000)
+                # OBS-002: log the detail server-side, keep the client note generic.
+                get_logger().warning(
+                    "status_probe_failed", source=name, url=url, error=repr(exc)
+                )
                 results.append(
                     SourceStatus(
                         name=name,
@@ -650,7 +688,7 @@ async def electricity_check_status() -> str:
                         reachable=False,
                         http_status=None,
                         latency_ms=latency_ms,
-                        note=f"{type(exc).__name__}: {exc}",
+                        note="unreachable",
                     )
                 )
     overall = all(r.reachable for r in results)

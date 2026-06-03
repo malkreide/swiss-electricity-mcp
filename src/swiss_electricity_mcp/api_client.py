@@ -22,6 +22,7 @@ from .models import (
     ATTRIBUTION_OPENDATA_SWISS,
     ATTRIBUTION_ZURICH,
 )
+from .observability import get_logger
 
 DASHBOARD_BASE = "https://www.energiedashboard.admin.ch/api"
 LINDAS_SPARQL = "https://lindas.admin.ch/query"
@@ -131,8 +132,17 @@ async def _fetch_with_retry(
                 raise
         except (httpx.RequestError, httpx.TimeoutException) as exc:
             last_error = exc
+    # OBS-002: log the internal detail server-side, return a generic message to
+    # the client so no stacktrace / internal repr leaks through the tool result.
+    get_logger().error(
+        "upstream_unreachable",
+        url=url,
+        method=method,
+        attempts=MAX_RETRIES + 1,
+        error=repr(last_error),
+    )
     raise UpstreamUnreachableError(
-        f"Upstream unreachable after {MAX_RETRIES} retries: {last_error!r}"
+        "Upstream temporarily unavailable after retries; see server logs."
     ) from last_error
 
 

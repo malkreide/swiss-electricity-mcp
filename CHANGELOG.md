@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a container only (prevents NeighborJack exposure on developer machines).
 - **SEC-007**: Added a multi-stage `Dockerfile` that runs as a non-root user
   (UID 10001) with a `HEALTHCHECK`.
+- **SEC-018**: The `category` argument is validated against the closed ElCom
+  category enumeration and the `canton` argument is SPARQL-escaped before
+  interpolation, closing a SPARQL-injection vector. String arguments now carry
+  `min_length`/`max_length` bounds.
+- **SEC-021 / SEC-004 / SEC-005**: All outbound requests pass through
+  `assert_url_allowed()` — an HTTPS-only, host-allow-listed egress gate
+  (`frozenset`). Documented in `docs/network-egress.md`.
+- **SEC-022**: Tool definitions are pinned in `tool-definitions.lock.json`; a
+  test fails if the tool surface drifts without regenerating the lock.
 
 ### Changed
 

@@ -22,7 +22,7 @@ upgrade to the most recent release before reporting an issue.
 
 Instead, report privately via one of:
 
-- **GitHub Security Advisories** — use the [*Report a vulnerability*](https://github.com/malkreide/swiss_electricity_mcp/security/advisories/new)
+- **GitHub Security Advisories** — use the [*Report a vulnerability*](https://github.com/malkreide/swiss-electricity-mcp/security/advisories/new)
   button under the repository's **Security** tab (preferred).
 - **Email** — `hayal.oezkan@gmail.com` with the subject line
   `[SECURITY] swiss-electricity-mcp`.

@@ -2,7 +2,7 @@
 
 > **MCP-Server für Schweizer Strom-Daten — drei offizielle Quellen, zwölf Tools, keine Authentifizierung.**
 
-[![CI](https://github.com/malkreide/swiss-electricity-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/malkreide/swiss-electricity-mcp/actions/workflows/ci.yml)
+[![CI](https://github.com/malkreide/swiss_electricity_mcp/actions/workflows/test.yml/badge.svg)](https://github.com/malkreide/swiss_electricity_mcp/actions/workflows/test.yml)
 [![PyPI](https://img.shields.io/pypi/v/swiss-electricity-mcp.svg)](https://pypi.org/project/swiss-electricity-mcp/)
 [![Python](https://img.shields.io/pypi/pyversions/swiss-electricity-mcp.svg)](https://pypi.org/project/swiss-electricity-mcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -74,8 +74,8 @@ pip install swiss-electricity-mcp
 ### Aus dem Quellcode
 
 ```bash
-git clone https://github.com/malkreide/swiss-electricity-mcp.git
-cd swiss-electricity-mcp
+git clone https://github.com/malkreide/swiss_electricity_mcp.git
+cd swiss_electricity_mcp
 pip install -e ".[dev]"
 ```
 

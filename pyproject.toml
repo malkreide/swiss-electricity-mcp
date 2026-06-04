@@ -9,7 +9,7 @@ description = "MCP server for Swiss electricity data — Energiedashboard (BFE),
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Hayal Küçük" }]
+authors = [{ name = "Hayal Oezkan" }]
 keywords = [
     "mcp", "model-context-protocol", "llm", "swiss-open-data",
     "electricity", "energy", "elcom", "bfe", "tariffs", "sustainability",

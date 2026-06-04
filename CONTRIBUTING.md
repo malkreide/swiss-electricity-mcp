@@ -1,4 +1,6 @@
-# Contributing to swiss-electricity-mcp
+# 🤝 Contributing to swiss-electricity-mcp
+
+🌍 **Read this in your language:** [🇩🇪 Deutsch](CONTRIBUTING.de.md)
 
 Part of the [Swiss Public Data MCP Portfolio](https://github.com/malkreide/swiss-public-data-mcp).
 This portfolio follows shared conventions so that all servers compose cleanly into

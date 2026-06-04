@@ -282,6 +282,11 @@ This MCP server is MIT-licensed (see [LICENSE](LICENSE)). Always cite the origin
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## 🔒 Security
+
+See [SECURITY.md](SECURITY.md) for the security policy and how to report a
+vulnerability.
+
 ## 📝 Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).

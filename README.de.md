@@ -185,7 +185,12 @@ Dieser MCP-Server ist unter MIT-Lizenz veröffentlicht (siehe [LICENSE](LICENSE)
 
 ## 🤝 Mitwirken
 
-Siehe [CONTRIBUTING.md](CONTRIBUTING.md).
+Siehe [CONTRIBUTING.de.md](CONTRIBUTING.de.md).
+
+## 🔒 Sicherheit
+
+Siehe [SECURITY.de.md](SECURITY.de.md) für die Sicherheitsrichtlinie und das
+Melden von Schwachstellen.
 
 ## 📝 Changelog
 

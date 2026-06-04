@@ -23,7 +23,7 @@ Problem melden.
 
 Melden Sie stattdessen vertraulich über einen dieser Wege:
 
-- **GitHub Security Advisories** — nutzen Sie den Button [*Report a vulnerability*](https://github.com/malkreide/swiss_electricity_mcp/security/advisories/new)
+- **GitHub Security Advisories** — nutzen Sie den Button [*Report a vulnerability*](https://github.com/malkreide/swiss-electricity-mcp/security/advisories/new)
   unter dem Reiter **Security** des Repositorys (bevorzugt).
 - **E-Mail** — `hayal.oezkan@gmail.com` mit der Betreffzeile
   `[SECURITY] swiss-electricity-mcp`.

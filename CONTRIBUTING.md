@@ -23,8 +23,8 @@ multi-source AI agent workflows.
 ## Setup
 
 ```bash
-git clone https://github.com/malkreide/swiss-electricity-mcp.git
-cd swiss-electricity-mcp
+git clone https://github.com/malkreide/swiss_electricity_mcp.git
+cd swiss_electricity_mcp
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"

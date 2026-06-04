@@ -125,4 +125,4 @@ run-id `2026-06-03T191138-Z-swiss-electricity-mcp`).
 - **Pattern**: Hybrid (live API + SPARQL + CKAN discovery), no authentication.
 - **Endpoints validated live** on 2026-05-21 via the `mcp-data-source-probe` skill.
 
-[0.1.0]: https://github.com/malkreide/swiss-electricity-mcp/releases/tag/v0.1.0
+[0.1.0]: https://github.com/malkreide/swiss_electricity_mcp/releases/tag/v0.1.0

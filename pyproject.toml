@@ -48,6 +48,7 @@ otel = [
 swiss-electricity-mcp = "swiss_electricity_mcp.__main__:main"
 
 [project.urls]
+"mcp-name" = "io.github.malkreide/swiss-electricity-mcp"
 Homepage = "https://github.com/malkreide/swiss-electricity-mcp"
 Repository = "https://github.com/malkreide/swiss-electricity-mcp"
 Issues = "https://github.com/malkreide/swiss-electricity-mcp/issues"

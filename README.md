@@ -290,3 +290,5 @@ vulnerability.
 ## 📝 Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
+
+<!-- mcp-name: io.github.malkreide/swiss-electricity-mcp -->

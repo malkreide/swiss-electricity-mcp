@@ -292,3 +292,22 @@ vulnerability.
 See [CHANGELOG.md](CHANGELOG.md).
 
 <!-- mcp-name: io.github.malkreide/swiss-electricity-mcp -->
+
+<!-- BEGIN GENERATED: install -->
+## Installation
+
+Run via [`uv`](https://docs.astral.sh/uv/)'s `uvx` — no clone or manual install needed. Add to your MCP client config (`mcpServers` for Claude Desktop, Cursor and Windsurf; use a top-level `servers` key for VS Code in `.vscode/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "swiss-electricity-mcp": {
+      "command": "uvx",
+      "args": [
+        "swiss-electricity-mcp"
+      ]
+    }
+  }
+}
+```
+<!-- END GENERATED: install -->

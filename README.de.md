@@ -19,6 +19,10 @@ Teil des **[Swiss Public Data MCP Portfolio](https://github.com/malkreide/swiss-
 
 Ein einziges Gespräch ruft `tariff_get_by_municipality` (bfs_nr=261, category="C3") + `tariff_get_median_swiss` und liefert einen Jahresvergleich mit vollständiger Provenance — bereit für eine Geschäftsleitungs-Folie.
 
+### Demo
+
+![Demo: Claude nutzt tariff_get_by_municipality und tariff_get_median_swiss](docs/assets/demo.svg)
+
 ---
 
 ## 📊 Was steckt drin
@@ -191,6 +195,15 @@ Siehe [CONTRIBUTING.de.md](CONTRIBUTING.de.md).
 
 Siehe [SECURITY.de.md](SECURITY.de.md) für die Sicherheitsrichtlinie und das
 Melden von Schwachstellen.
+
+## Lizenz
+
+MIT-Lizenz — siehe [LICENSE](LICENSE). Die Upstream-Daten behalten die unter
+*Datenquellen & Lizenzierung* oben genannten Lizenzen.
+
+## Autor
+
+**Hayal Oezkan** · [github.com/malkreide](https://github.com/malkreide)
 
 ## 📝 Changelog
 

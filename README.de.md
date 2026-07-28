@@ -1,4 +1,4 @@
-# 🇨🇭⚡ swiss-electricity-mcp
+# swiss-electricity-mcp
 
 > **MCP-Server für Schweizer Strom-Daten — drei offizielle Quellen, zwölf Tools, keine Authentifizierung.**
 
@@ -13,7 +13,7 @@ Teil des **[Swiss Public Data MCP Portfolio](https://github.com/malkreide/swiss-
 
 ---
 
-## 🔥 Anker-Demoabfrage
+## Anker-Demoabfrage
 
 > *«Wie haben sich die ewz-Stromtarife für ein typisches Schulgebäude (Verbrauchskategorie C3, ≈150'000 kWh/a) seit 2019 entwickelt, und wie liegen sie im Vergleich zum Schweizer Median?»*
 
@@ -25,7 +25,7 @@ Ein einziges Gespräch ruft `tariff_get_by_municipality` (bfs_nr=261, category="
 
 ---
 
-## 📊 Was steckt drin
+## Was steckt drin
 
 Drei offizielle Schweizer Datenquellen, kombiniert in einem MCP-Server, jede mit ihrer eigenen Tool-Gruppe:
 
@@ -39,7 +39,7 @@ Drei offizielle Schweizer Datenquellen, kombiniert in einem MCP-Server, jede mit
 
 ---
 
-## 🛠️ Tools (12)
+## Tools (12)
 
 ### `dashboard_*` — Energiedashboard.ch (BFE)
 
@@ -67,7 +67,7 @@ Drei offizielle Schweizer Datenquellen, kombiniert in einem MCP-Server, jede mit
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Von PyPI
 
@@ -85,7 +85,7 @@ pip install -e ".[dev]"
 
 ---
 
-## 💬 Verwendung mit Claude Desktop
+## Verwendung mit Claude Desktop
 
 In `claude_desktop_config.json` hinzufügen:
 
@@ -101,7 +101,7 @@ In `claude_desktop_config.json` hinzufügen:
 
 ---
 
-## ☁️ Cloud-Deployment (Streamable HTTP)
+## Cloud-Deployment (Streamable HTTP)
 
 ```bash
 SWISS_ELECTRICITY_TRANSPORT=streamable-http \
@@ -114,7 +114,7 @@ Funktioniert auf Render.com, Railway, Fly.io.
 
 ---
 
-## 🏗️ Architektur
+## Architektur
 
 **Hybrid (Live-API + SPARQL + CKAN-Discovery)**, ohne Authentifizierung. Drei Gründe, weshalb das die richtige Form ist:
 
@@ -140,7 +140,7 @@ Damit wird eine versehentliche Falschattribution strukturell unmöglich.
 
 ---
 
-## 🧪 Tests
+## Tests
 
 ```bash
 # Unit-Tests (gemockt, schnell, CI-Standard)
@@ -154,7 +154,7 @@ PYTHONPATH=src pytest tests/ -m live -v
 
 ---
 
-## ⚠️ Bekannte Einschränkungen
+## Bekannte Einschränkungen
 
 - **LINDAS-SPARQL-504-Timeouts**: der öffentliche LINDAS-Endpunkt gibt unter Last gelegentlich 504 zurück. Die 3-Retry-Strategie deckt transiente Fälle ab; persistente Nichtverfügbarkeit erscheint als `UpstreamUnreachableError`.
 - **Keine historischen PV/Wind-Details**: das Energiedashboard liefert nur aggregierten Produktionsmix auf Jahresebene. Für unterjährige PV oder Wind via `consumption_search_bfe_datasets`.
@@ -163,7 +163,7 @@ PYTHONPATH=src pytest tests/ -m live -v
 
 ---
 
-## 🌐 Portfolio-Synergien
+## Portfolio-Synergien
 
 Dieser Server kombiniert sich natürlich mit anderen Portfolio-Servern:
 
@@ -174,7 +174,7 @@ Dieser Server kombiniert sich natürlich mit anderen Portfolio-Servern:
 
 ---
 
-## 📜 Datenquellen & Lizenzierung
+## Datenquellen & Lizenzierung
 
 Alle Upstream-Daten sind **Open Government Data Schweiz (OGD-CH)**:
 
@@ -187,11 +187,11 @@ Dieser MCP-Server ist unter MIT-Lizenz veröffentlicht (siehe [LICENSE](LICENSE)
 
 ---
 
-## 🤝 Mitwirken
+## Mitwirken
 
 Siehe [CONTRIBUTING.de.md](CONTRIBUTING.de.md).
 
-## 🔒 Sicherheit
+## Sicherheit
 
 Siehe [SECURITY.de.md](SECURITY.de.md) für die Sicherheitsrichtlinie und das
 Melden von Schwachstellen.
@@ -205,6 +205,6 @@ MIT-Lizenz — siehe [LICENSE](LICENSE). Die Upstream-Daten behalten die unter
 
 **Hayal Oezkan** · [github.com/malkreide](https://github.com/malkreide)
 
-## 📝 Changelog
+## Changelog
 
 Siehe [CHANGELOG.md](CHANGELOG.md).

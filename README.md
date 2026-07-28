@@ -1,4 +1,4 @@
-# 🇨🇭⚡ swiss-electricity-mcp
+# swiss-electricity-mcp
 
 > **MCP server for Swiss electricity data — three official sources, twelve tools, zero authentication.**
 
@@ -13,7 +13,7 @@ Part of the **[Swiss Public Data MCP Portfolio](https://github.com/malkreide/swi
 
 ---
 
-## 🔥 Anchor demo query
+## Anchor demo query
 
 > *"How have ewz electricity tariffs for a typical school building (consumption category C3, ≈150'000 kWh/a) developed since 2019, and how do they compare to the Swiss median?"*
 
@@ -25,7 +25,7 @@ A single conversation calls `tariff_get_by_municipality` (bfs_nr=261, category="
 
 ---
 
-## 📊 What's inside
+## What's inside
 
 Three official Swiss data sources combined into one MCP server, each with its own dedicated tool group:
 
@@ -39,7 +39,7 @@ Three official Swiss data sources combined into one MCP server, each with its ow
 
 ---
 
-## 🛠️ Tools (12)
+## Tools (12)
 
 ### `dashboard_*` — Energiedashboard.ch (BFE)
 
@@ -67,7 +67,7 @@ Three official Swiss data sources combined into one MCP server, each with its ow
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### From PyPI
 
@@ -85,7 +85,7 @@ pip install -e ".[dev]"
 
 ---
 
-## 💬 Use with Claude Desktop
+## Use with Claude Desktop
 
 Add to `claude_desktop_config.json`:
 
@@ -101,7 +101,7 @@ Add to `claude_desktop_config.json`:
 
 ---
 
-## ☁️ Cloud deployment (Streamable HTTP)
+## Cloud deployment (Streamable HTTP)
 
 ```bash
 SWISS_ELECTRICITY_TRANSPORT=streamable-http \
@@ -130,7 +130,7 @@ docker run --rm -p 8000:8000 swiss-electricity-mcp
 
 ---
 
-## 🔭 Observability & configuration
+## Observability & configuration
 
 | Env var | Default | Purpose |
 |---|---|---|
@@ -157,7 +157,7 @@ docker run --rm -p 8000:8000 swiss-electricity-mcp
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
           ┌────────────────────────── MCP client (Claude etc.) ──────────────────────────┐
@@ -217,7 +217,7 @@ supply-chain, lethal-trifecta assessment) is documented in
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Unit tests (mocked, fast, CI default) — tests/test_unit.py + tests/test_security.py
@@ -235,7 +235,7 @@ Python 3.11–3.13.
 
 ---
 
-## 🔌 MCP protocol version
+## MCP protocol version
 
 This server is built on the official MCP Python SDK (`mcp[cli]`), pinned to
 `>=1.2.0,<2.0.0`. The MCP protocol version is negotiated by the SDK at the
@@ -249,7 +249,7 @@ bump is only adopted via an explicit SDK minor/major bump, recorded in
 
 ---
 
-## ⚠️ Known limitations
+## Known limitations
 
 - **LINDAS SPARQL 504 timeouts**: the LINDAS public endpoint occasionally returns 504 under load. The 3-retry policy handles transient cases; persistent unavailability surfaces as `UpstreamUnreachableError`.
 - **No historical PV/wind detail**: Energiedashboard exposes only aggregated production mix at year level. For sub-yearly PV or wind, use `consumption_search_bfe_datasets`.
@@ -258,7 +258,7 @@ bump is only adopted via an explicit SDK minor/major bump, recorded in
 
 ---
 
-## 🌐 Portfolio synergy
+## Portfolio synergy
 
 This server composes naturally with other portfolio servers:
 
@@ -269,7 +269,7 @@ This server composes naturally with other portfolio servers:
 
 ---
 
-## 📜 Data sources & licensing
+## Data sources & licensing
 
 All upstream data is **Open Government Data Switzerland (OGD-CH)**:
 
@@ -282,11 +282,11 @@ This MCP server is MIT-licensed (see [LICENSE](LICENSE)). Always cite the origin
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 🔒 Security
+## Security
 
 See [SECURITY.md](SECURITY.md) for the security policy and how to report a
 vulnerability.
@@ -300,7 +300,7 @@ listed under *Data sources & licensing* above.
 
 **Hayal Oezkan** · [github.com/malkreide](https://github.com/malkreide)
 
-## 📝 Changelog
+## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
 

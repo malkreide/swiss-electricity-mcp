@@ -33,3 +33,6 @@ jobs:
 
       - name: Unit tests (live excluded)
         run: pytest -m "not live" -q
+
+      - name: Versions-Sync (pyproject ↔ server.json / README / src)
+        run: python scripts/check_version_sync.py

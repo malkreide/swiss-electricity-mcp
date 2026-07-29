@@ -28,6 +28,9 @@ dependencies = [
     "mcp[cli]>=2.0.0,<3",
     "httpx>=0.27.0",
     "pydantic>=2.6.0",
+    # mcp 1.x pulled pydantic-settings in transitively; mcp 2.x dropped it, so
+    # the Settings object this server imports needs an explicit dependency.
+    "pydantic-settings>=2.0",
     "structlog>=24.1.0",
 ]
 

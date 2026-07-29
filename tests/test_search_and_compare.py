@@ -93,9 +93,7 @@ class TestSearchNotFound:
             )
         )
         payload = json.loads(
-            await consumption_search_zurich(
-                ctx=FakeCtx(), query="energie", response_format="json"
-            )
+            await consumption_search_zurich(ctx=FakeCtx(), query="energie", response_format="json")
         )
         assert payload["match_type"] == "results"
         assert payload["suggestion"] is None
@@ -106,9 +104,7 @@ class TestParallelCompare:
 
     @respx.mock
     async def test_compare_collects_all_rows_and_reports_progress(self):
-        route = respx.get(LINDAS_SPARQL).mock(
-            return_value=httpx.Response(200, json=_ELCOM_ONE_ROW)
-        )
+        route = respx.get(LINDAS_SPARQL).mock(return_value=httpx.Response(200, json=_ELCOM_ONE_ROW))
         ctx = FakeCtx()
         out = await tariff_compare_municipalities(
             ctx=ctx,

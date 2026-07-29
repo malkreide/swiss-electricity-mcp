@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.mcpserver.exceptions import ToolError
 
 from swiss_electricity_mcp import observability
 from swiss_electricity_mcp.__main__ import build_http_app

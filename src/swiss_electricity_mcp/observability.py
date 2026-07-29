@@ -85,9 +85,7 @@ def setup_telemetry() -> Any | None:
     resource = Resource.create(
         {
             "service.name": SERVICE_NAME,
-            "deployment.environment": os.environ.get(
-                "SWISS_ELECTRICITY_ENV", "unknown"
-            ),
+            "deployment.environment": os.environ.get("SWISS_ELECTRICITY_ENV", "unknown"),
         }
     )
     provider = TracerProvider(resource=resource)

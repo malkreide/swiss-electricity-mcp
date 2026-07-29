@@ -1,4 +1,4 @@
-"""FastMCP server for swiss-electricity-mcp.
+"""MCPServer server for swiss-electricity-mcp.
 
 Tools are grouped by source:
 - dashboard_*  -> Energiedashboard.ch (BFE) live national figures
@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Annotated, Literal
 
 import httpx
-from mcp.server.fastmcp import Context, FastMCP
+from mcp.server.mcpserver import Context, MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
@@ -73,8 +73,8 @@ from .observability import (
 
 # Annotation presets: every tool is read-only. Tools that reach an external
 # upstream are open-world; the static category list is closed-world.
-_READ_ONLY_EXTERNAL = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
-_READ_ONLY_STATIC = ToolAnnotations(readOnlyHint=True, openWorldHint=False)
+_READ_ONLY_EXTERNAL = ToolAnnotations(read_only_hint=True, open_world_hint=True)
+_READ_ONLY_STATIC = ToolAnnotations(read_only_hint=True, open_world_hint=False)
 
 
 @dataclass
@@ -92,7 +92,7 @@ def _app(ctx: Context) -> AppContext:
 
 
 @asynccontextmanager
-async def lifespan(_server: FastMCP):
+async def lifespan(_server: MCPServer):
     """Set up logging + tracing and own the shared HTTP clients' lifecycle."""
     settings = get_settings()
     configure_logging(settings.log_level)
@@ -113,7 +113,7 @@ async def lifespan(_server: FastMCP):
         get_logger().info("server_stopped")
 
 
-mcp = FastMCP(
+mcp = MCPServer(
     name="swiss-electricity-mcp",
     instructions=(
         "Swiss electricity data from three official sources: Energiedashboard.ch (BFE) "
@@ -166,16 +166,12 @@ def _to_markdown(model_obj) -> str:
             lines.append(f"### {k} ({len(v)})")
             for item in v[:25]:
                 if isinstance(item, dict):
-                    summary = ", ".join(
-                        f"{kk}={vv}" for kk, vv in item.items() if vv is not None
-                    )
+                    summary = ", ".join(f"{kk}={vv}" for kk, vv in item.items() if vv is not None)
                     lines.append(f"- {summary}")
                 else:
                     lines.append(f"- {item}")
             if len(v) > 25:
-                lines.append(
-                    f"- _(+ {len(v) - 25} more - request JSON format for full list)_"
-                )
+                lines.append(f"- _(+ {len(v) - 25} more - request JSON format for full list)_")
         else:
             lines.append(f"**{k}:** {v}")
     return "\n".join(lines)
@@ -226,7 +222,10 @@ async def dashboard_get_production_mix(
             )
         )
     response = ProductionMixResponse(
-        source=ATTRIBUTION_BFE, provenance=prov, retrieved_at=retrieved, years=years,
+        source=ATTRIBUTION_BFE,
+        provenance=prov,
+        retrieved_at=retrieved,
+        years=years,
     )
     return _format_response(response, response_format)
 
@@ -343,7 +342,10 @@ async def dashboard_get_consumer_price_index(
         for e in series[-limit_months:]
     ]
     response = IndexedPriceResponse(
-        source=ATTRIBUTION_BFE, provenance=prov, retrieved_at=retrieved, series=parsed,
+        source=ATTRIBUTION_BFE,
+        provenance=prov,
+        retrieved_at=retrieved,
+        series=parsed,
     )
     return _format_response(response, response_format)
 
@@ -364,9 +366,7 @@ async def tariff_list_categories(
 ) -> str:
     """Liste der ElCom-Verbrauchskategorien (statisch)."""
     cats = [
-        TariffCategory(
-            code=c["code"], description_de=c["desc"], typical_consumption_kwh=c["kwh"]
-        )
+        TariffCategory(code=c["code"], description_de=c["desc"], typical_consumption_kwh=c["kwh"])
         for c in ElComSparqlClient.CATEGORIES
     ]
     response = TariffCategoriesResponse(
@@ -538,7 +538,9 @@ async def tariff_get_median_canton(
 async def tariff_compare_municipalities(
     ctx: Context,
     bfs_numbers: Annotated[list[int], Field(min_length=1, max_length=20)],
-    category: Annotated[str, Field(description="Verbrauchskategorie (e.g. C3)", min_length=1, max_length=4)],
+    category: Annotated[
+        str, Field(description="Verbrauchskategorie (e.g. C3)", min_length=1, max_length=4)
+    ],
     period: Annotated[int, Field(ge=2009, le=2100)],
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
@@ -661,7 +663,9 @@ async def consumption_search_zurich(
     response_format: Annotated[Literal["json", "markdown"], Field()] = "markdown",
 ) -> str:
     """Suche im Stadt-Zuerich-OGD-Portal."""
-    data, prov, retrieved = await _app(ctx).ckan.search_zurich(query=query, rows=limit, offset=offset)
+    data, prov, retrieved = await _app(ctx).ckan.search_zurich(
+        query=query, rows=limit, offset=offset
+    )
     if not data.get("success"):
         raise UpstreamUnreachableError("data.stadt-zuerich.ch returned success=false")
     result = data.get("result") or {}
@@ -738,9 +742,7 @@ async def electricity_check_status() -> str:
             except (httpx.RequestError, httpx.TimeoutException, EgressNotAllowedError) as exc:
                 latency_ms = int((time.monotonic() - t0) * 1000)
                 # OBS-002: log the detail server-side, keep the client note generic.
-                get_logger().warning(
-                    "status_probe_failed", source=name, url=url, error=repr(exc)
-                )
+                get_logger().warning("status_probe_failed", source=name, url=url, error=repr(exc))
                 results.append(
                     SourceStatus(
                         name=name,
@@ -753,6 +755,8 @@ async def electricity_check_status() -> str:
                 )
     overall = all(r.reachable for r in results)
     response = StatusResponse(
-        checked_at=utc_now_iso(), sources=results, overall_healthy=overall,
+        checked_at=utc_now_iso(),
+        sources=results,
+        overall_healthy=overall,
     )
     return json.dumps(response.model_dump(), indent=2, ensure_ascii=False)

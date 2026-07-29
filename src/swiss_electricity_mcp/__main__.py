@@ -50,8 +50,9 @@ def main() -> None:
     if settings.transport.lower() in {"http", "streamable-http", "sse"}:
         import uvicorn
 
-        mcp.settings.host = settings.host
-        mcp.settings.port = settings.port
+        # Bind address goes straight to uvicorn; under mcp 2.x
+        # MCPServer.settings carries no host/port, and the assignment was
+        # redundant here anyway.
         uvicorn.run(build_http_app(), host=settings.host, port=settings.port)
     else:
         mcp.run(transport="stdio")

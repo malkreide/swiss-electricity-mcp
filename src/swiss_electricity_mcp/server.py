@@ -21,6 +21,7 @@ from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
+from . import __version__
 from .api_client import (
     DASHBOARD_BASE,
     LINDAS_SPARQL,
@@ -717,7 +718,7 @@ async def electricity_check_status() -> str:
     results: list[SourceStatus] = []
     async with httpx.AsyncClient(
         timeout=10.0,
-        headers={"User-Agent": "swiss-electricity-mcp/0.2.0 status-probe"},
+        headers={"User-Agent": f"swiss-electricity-mcp/{__version__} status-probe"},
     ) as http:
         for name, url in probes:
             t0 = time.monotonic()

@@ -33,14 +33,14 @@ async def build_snapshot() -> list[dict[str, Any]]:
     snapshot: list[dict[str, Any]] = []
     for t in sorted(tools, key=lambda x: x.name):
         annotations = (
-            t.annotations.model_dump(exclude_none=True) if t.annotations else {}
+            t.annotations.model_dump(exclude_none=True, by_alias=True) if t.annotations else {}
         )
         snapshot.append(
             {
                 "name": t.name,
                 "description": t.description or "",
                 "annotations": annotations,
-                "input_schema": t.inputSchema,
+                "input_schema": t.input_schema,
             }
         )
     return snapshot
@@ -64,17 +64,13 @@ def build_lock(snapshot: list[dict[str, Any]]) -> dict[str, Any]:
 def write_lock(path: Path = LOCK_PATH) -> dict[str, Any]:
     snapshot = asyncio.run(build_snapshot())
     lock = build_lock(snapshot)
-    path.write_text(
-        json.dumps(lock, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    path.write_text(json.dumps(lock, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return lock
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Tool-definition snapshot (SEC-022).")
-    parser.add_argument(
-        "--write", action="store_true", help="(Re)write tool-definitions.lock.json"
-    )
+    parser.add_argument("--write", action="store_true", help="(Re)write tool-definitions.lock.json")
     args = parser.parse_args()
     if args.write:
         lock = write_lock()

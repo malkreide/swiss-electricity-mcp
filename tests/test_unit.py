@@ -130,15 +130,11 @@ class TestSparqlValueHelper:
         assert sparql_value({"x": {"value": ""}}, "x") is None
 
     def test_coerces_decimal_to_float(self):
-        binding = {
-            "x": {"value": "23.45", "datatype": "http://www.w3.org/2001/XMLSchema#decimal"}
-        }
+        binding = {"x": {"value": "23.45", "datatype": "http://www.w3.org/2001/XMLSchema#decimal"}}
         assert sparql_value(binding, "x") == 23.45
 
     def test_coerces_integer(self):
-        binding = {
-            "x": {"value": "2025", "datatype": "http://www.w3.org/2001/XMLSchema#integer"}
-        }
+        binding = {"x": {"value": "2025", "datatype": "http://www.w3.org/2001/XMLSchema#integer"}}
         assert sparql_value(binding, "x") == 2025
 
     def test_returns_string_when_no_datatype(self):
@@ -181,9 +177,9 @@ class TestEnergyDashboardClient:
 
     @respx.mock
     async def test_consumption_forecast(self):
-        respx.get(
-            f"{DASHBOARD_BASE}/strom/v2/strom-verbrauch/landesverbrauch-mit-prognose"
-        ).mock(return_value=httpx.Response(200, json=CONSUMPTION_FORECAST_PAYLOAD))
+        respx.get(f"{DASHBOARD_BASE}/strom/v2/strom-verbrauch/landesverbrauch-mit-prognose").mock(
+            return_value=httpx.Response(200, json=CONSUMPTION_FORECAST_PAYLOAD)
+        )
         client = EnergyDashboardClient()
         try:
             data, _, _ = await client.get_consumption_forecast()
@@ -241,9 +237,7 @@ class TestCkanDiscoveryClient:
         )
         client = CkanDiscoveryClient()
         try:
-            data, prov, _ = await client.search_opendata_swiss(
-                "stromverbrauch", bfe_only=True
-            )
+            data, prov, _ = await client.search_opendata_swiss("stromverbrauch", bfe_only=True)
             assert prov == "live_api"
             assert data["result"]["count"] == 1
         finally:
@@ -260,6 +254,7 @@ class TestRetryBehaviour:
     async def test_retries_5xx_then_succeeds(self, monkeypatch):
         async def fake_sleep(_):
             return None
+
         monkeypatch.setattr(asyncio, "sleep", fake_sleep)
         route = respx.get(f"{DASHBOARD_BASE}/strom/strom-produktionsmix")
         route.side_effect = [
@@ -280,6 +275,7 @@ class TestRetryBehaviour:
     async def test_4xx_no_retry(self, monkeypatch):
         async def fake_sleep(_):
             return None
+
         monkeypatch.setattr(asyncio, "sleep", fake_sleep)
         route = respx.get(f"{DASHBOARD_BASE}/strom/strom-produktionsmix")
         route.return_value = httpx.Response(404)
@@ -295,6 +291,7 @@ class TestRetryBehaviour:
     async def test_429_does_retry(self, monkeypatch):
         async def fake_sleep(_):
             return None
+
         monkeypatch.setattr(asyncio, "sleep", fake_sleep)
         route = respx.get(f"{DASHBOARD_BASE}/strom/strom-produktionsmix")
         route.side_effect = [
@@ -319,6 +316,7 @@ class TestNetworkErrorHandling:
     async def test_timeout_raises_clean_error(self, monkeypatch):
         async def fake_sleep(_):
             return None
+
         monkeypatch.setattr(asyncio, "sleep", fake_sleep)
         respx.get(f"{DASHBOARD_BASE}/strom/strom-produktionsmix").mock(
             side_effect=httpx.ConnectTimeout("upstream timeout")
@@ -339,6 +337,7 @@ class TestNetworkErrorHandling:
     async def test_504_sparql_gateway_timeout_retries(self, monkeypatch):
         async def fake_sleep(_):
             return None
+
         monkeypatch.setattr(asyncio, "sleep", fake_sleep)
         route = respx.get(LINDAS_SPARQL)
         route.side_effect = [

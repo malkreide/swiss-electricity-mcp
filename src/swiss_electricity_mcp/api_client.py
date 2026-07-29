@@ -93,8 +93,7 @@ def _sparql_escape_literal(value: str) -> str:
 # tool argument is validated against this allow-list before it ever reaches a
 # SPARQL query, rejecting typos and injection attempts alike.
 VALID_CATEGORY_CODES: frozenset[str] = frozenset(
-    {"H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8",
-     "C1", "C2", "C3", "C4", "C5", "C6", "C7"}
+    {"H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8", "C1", "C2", "C3", "C4", "C5", "C6", "C7"}
 )
 
 
@@ -104,8 +103,7 @@ def _category_filter(category: str | None) -> str:
         return ""
     if category not in VALID_CATEGORY_CODES:
         raise ValueError(
-            f"Unknown category {category!r}; expected one of "
-            f"{sorted(VALID_CATEGORY_CODES)}"
+            f"Unknown category {category!r}; expected one of {sorted(VALID_CATEGORY_CODES)}"
         )
     return f'FILTER(STR(?categoryCode) = "{_sparql_escape_literal(category)}")'
 
@@ -241,19 +239,59 @@ class ElComSparqlClient:
     CATEGORIES: list[dict[str, str]] = [
         {"code": "H1", "desc": "Wohnung mit 2 Zimmern (1'600 kWh/a)", "kwh": "1600"},
         {"code": "H2", "desc": "4-Zimmer-Wohnung mit Elektroherd (2'500 kWh/a)", "kwh": "2500"},
-        {"code": "H3", "desc": "4-Zimmer-Wohnung mit Elektroherd und Boiler (4'500 kWh/a)", "kwh": "4500"},
-        {"code": "H4", "desc": "5-Zimmer-Wohnung mit Elektroherd, Boiler, Tumbler (4'500 kWh/a)", "kwh": "4500"},
-        {"code": "H5", "desc": "5-Zimmer-Einfamilienhaus mit Elektroherd, Boiler, Tumbler (7'500 kWh/a)", "kwh": "7500"},
-        {"code": "H6", "desc": "5-Zimmer-Einfamilienhaus mit Elektroherd und Elektroboiler-Heizung (25'000 kWh/a)", "kwh": "25000"},
-        {"code": "H7", "desc": "5-Zimmer-Einfamilienhaus mit Waermepumpe (13'000 kWh/a)", "kwh": "13000"},
+        {
+            "code": "H3",
+            "desc": "4-Zimmer-Wohnung mit Elektroherd und Boiler (4'500 kWh/a)",
+            "kwh": "4500",
+        },
+        {
+            "code": "H4",
+            "desc": "5-Zimmer-Wohnung mit Elektroherd, Boiler, Tumbler (4'500 kWh/a)",
+            "kwh": "4500",
+        },
+        {
+            "code": "H5",
+            "desc": "5-Zimmer-Einfamilienhaus mit Elektroherd, Boiler, Tumbler (7'500 kWh/a)",
+            "kwh": "7500",
+        },
+        {
+            "code": "H6",
+            "desc": "5-Zimmer-Einfamilienhaus mit Elektroherd und Elektroboiler-Heizung (25'000 kWh/a)",
+            "kwh": "25000",
+        },
+        {
+            "code": "H7",
+            "desc": "5-Zimmer-Einfamilienhaus mit Waermepumpe (13'000 kWh/a)",
+            "kwh": "13000",
+        },
         {"code": "H8", "desc": "Grosser Haushalt mit hohem Verbrauch (7'500 kWh/a)", "kwh": "7500"},
         {"code": "C1", "desc": "Kleiner Gewerbebetrieb (8'000 kWh/a)", "kwh": "8000"},
         {"code": "C2", "desc": "Mittlerer Gewerbebetrieb (30'000 kWh/a)", "kwh": "30000"},
-        {"code": "C3", "desc": "Groesserer Gewerbebetrieb (150'000 kWh/a, z. B. Schule)", "kwh": "150000"},
-        {"code": "C4", "desc": "Grosser Gewerbebetrieb mit Niederspannungsmessung (500'000 kWh/a)", "kwh": "500000"},
-        {"code": "C5", "desc": "Grosser Gewerbebetrieb mit Mittelspannungsmessung (500'000 kWh/a)", "kwh": "500000"},
-        {"code": "C6", "desc": "Grosser Gewerbebetrieb mit Mittelspannungsmessung (1'500'000 kWh/a)", "kwh": "1500000"},
-        {"code": "C7", "desc": "Grossbetrieb mit eigener Transformatorenstation (7'500'000 kWh/a)", "kwh": "7500000"},
+        {
+            "code": "C3",
+            "desc": "Groesserer Gewerbebetrieb (150'000 kWh/a, z. B. Schule)",
+            "kwh": "150000",
+        },
+        {
+            "code": "C4",
+            "desc": "Grosser Gewerbebetrieb mit Niederspannungsmessung (500'000 kWh/a)",
+            "kwh": "500000",
+        },
+        {
+            "code": "C5",
+            "desc": "Grosser Gewerbebetrieb mit Mittelspannungsmessung (500'000 kWh/a)",
+            "kwh": "500000",
+        },
+        {
+            "code": "C6",
+            "desc": "Grosser Gewerbebetrieb mit Mittelspannungsmessung (1'500'000 kWh/a)",
+            "kwh": "1500000",
+        },
+        {
+            "code": "C7",
+            "desc": "Grossbetrieb mit eigener Transformatorenstation (7'500'000 kWh/a)",
+            "kwh": "7500000",
+        },
     ]
 
     def __init__(
@@ -280,9 +318,7 @@ class ElComSparqlClient:
         cached = self._cache.get(cache_key)
         if cached is not None:
             return cached, "cached"
-        resp = await _fetch_with_retry(
-            self._http, "GET", LINDAS_SPARQL, params={"query": query}
-        )
+        resp = await _fetch_with_retry(self._http, "GET", LINDAS_SPARQL, params={"query": query})
         bindings = resp.json().get("results", {}).get("bindings", [])
         self._cache.set(cache_key, bindings)
         return bindings, "sparql"

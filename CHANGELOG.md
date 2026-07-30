@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **HTTP-Modus wies unter jedem echten Hostnamen mit 421 ab (SEC-005).**
+  `build_http_app()` rief `mcp.streamable_http_app()` ohne `host` auf. Unter
+  mcp 2.x ist das kein neutraler Default: das SDK leitet daraus seine
+  Host-Allow-List ab und aktiviert bei loopback-artigem Wert automatisch
+  `127.0.0.1:*`. Da das Argument selbst auf `127.0.0.1` defaultet, galt das auch
+  für den `SWISS_ELECTRICITY_HOST=0.0.0.0`-Bind, den dieses Modul für Container
+  dokumentiert. Vor der Migration ging `host` an den `FastMCP`-Konstruktor, wo
+  dieselbe Logik den echten Bind sah und den Schutz korrekt ausliess.
+
+  Der Bind reist jetzt in die App, und eine echte Allow-List wird aus dem neuen
+  `SWISS_ELECTRICITY_ALLOWED_HOSTS` gebaut. Ohne diese Variable bleibt der
+  Schutz auf einem Nicht-Loopback-Bind bewusst aus und der Aufrufer warnt — eine
+  geratene Liste wäre genau der 421-Fall.
+
+- **`SWISS_ELECTRICITY_CORS_ORIGINS` funktionierte nie in der dokumentierten
+  Form.** Vorbestehender Fehler, den das zweite Listen-Feld sichtbar gemacht
+  hat: pydantic-settings JSON-dekodiert komplex typisierte Felder aus der
+  Umgebung, *bevor* ein `mode="before"`-Validator läuft. Eine kommagetrennte
+  Liste löste damit `SettingsError` aus, und `_split_csv` war für Env-Eingaben
+  unerreichbar — toter Code. Beide Felder tragen jetzt `NoDecode`.
+
+  14 neue Tests, darunter der tragende Fall „richtiger Hostname, falscher Port":
+  nur er unterscheidet eine portgenaue Allow-List von einer, die alles
+  durchlässt. Mutationsgetestet in beide Richtungen — `NoDecode` entfernen bricht
+  die CSV-Tests, den `host`-Kwarg entfernen reproduziert das 421.
+
+  Geprüft mit dem wörtlichen CI-Kommando (`pytest -m "not live" -q`):
+  58 passed, 3 deselected; `ruff check src/ tests/` clean.
+
+
 ## [0.2.0] - 2026-06-03
 
 Audit-remediation release. Closes all critical/high findings from the

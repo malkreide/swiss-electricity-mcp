@@ -127,10 +127,7 @@ def test_right_host_wrong_port_is_rejected(monkeypatch):
     """
     monkeypatch.setenv("SWISS_ELECTRICITY_ALLOWED_HOSTS", "power.example.ch:8000")
     get_settings.cache_clear()
-    assert (
-        _post(build_http_app([], host="0.0.0.0", port=8000), "power.example.ch:9999")
-        == 421
-    )
+    assert _post(build_http_app([], host="0.0.0.0", port=8000), "power.example.ch:9999") == 421
 
 
 def test_allowed_hosts_is_read_as_csv(monkeypatch):
@@ -148,8 +145,6 @@ def test_cors_origins_is_read_as_csv(monkeypatch):
     ``NoDecode`` this raised ``SettingsError``, so the documented form never
     worked and ``_split_csv`` was unreachable for env input.
     """
-    monkeypatch.setenv(
-        "SWISS_ELECTRICITY_CORS_ORIGINS", "https://a.test, https://b.test"
-    )
+    monkeypatch.setenv("SWISS_ELECTRICITY_CORS_ORIGINS", "https://a.test, https://b.test")
     get_settings.cache_clear()
     assert get_settings().cors_origins == ["https://a.test", "https://b.test"]

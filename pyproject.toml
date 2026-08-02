@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "swiss-electricity-mcp"
-version = "0.2.4"
+version = "0.2.5"
 description = "MCP server for Swiss electricity data — Energiedashboard (BFE), ElCom tariffs, consumption"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,7 +31,7 @@ dependencies = [
     # mcp 1.x pulled pydantic-settings in transitively; mcp 2.x dropped it, so
     # the Settings object this server imports needs an explicit dependency.
     "pydantic-settings>=2.0",
-    "structlog>=24.1.0",
+    "structlog>=24.1.0,<27",
 ]
 
 [project.optional-dependencies]

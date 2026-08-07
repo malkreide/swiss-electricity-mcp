@@ -187,6 +187,37 @@ def ckan_result(data: object, action: str) -> dict:
     return result
 
 
+def sparql_bindings(payload: object) -> list:
+    """Die Bindings einer SPARQL-JSON-Antwort, oder laut scheitern (FID-006).
+
+    ``resp.json().get("results", {}).get("bindings", [])`` machte aus jeder
+    Strukturänderung null Zeilen — und damit aus einem Fehler eine gültige
+    Aussage über die Schweizer Stromtarife.
+
+    Die Form ist hier nicht geraten: Die SPARQL-1.1-Results-Empfehlung des W3C
+    schreibt ``results.bindings`` vor, auch für ein leeres Ergebnis. Fehlt es,
+    hat nicht LINDAS nichts gefunden — dann ist die Antwort keine
+    SPARQL-Antwort mehr (etwa eine Fehlerseite mit HTTP 200).
+    """
+    if not isinstance(payload, dict):
+        raise UpstreamSchemaError(
+            f"LINDAS SPARQL: Antwort ist {type(payload).__name__} und kein Objekt."
+        )
+    if "results" not in payload:
+        raise UpstreamSchemaError(
+            f"LINDAS SPARQL: Antwort ohne `results`. Vorhandene Schlüssel: "
+            f"{sorted(payload)}. SPARQL 1.1 schreibt `results.bindings` vor, "
+            "auch für ein leeres Ergebnis — dies ist keine leere Abfrage."
+        )
+    results = payload["results"]
+    if not isinstance(results, dict) or "bindings" not in results:
+        raise UpstreamSchemaError(
+            "LINDAS SPARQL: `results` ohne `bindings`. Vorhanden: "
+            f"{sorted(results) if isinstance(results, dict) else type(results).__name__}."
+        )
+    return results["bindings"]
+
+
 class EgressNotAllowedError(ValueError):
     """Raised when an outbound request targets a non-allow-listed host or scheme."""
 
@@ -482,7 +513,7 @@ class ElComSparqlClient:
         if cached is not None:
             return cached, "cached"
         resp = await _fetch_with_retry(self._http, "GET", LINDAS_SPARQL, params={"query": query})
-        bindings = resp.json().get("results", {}).get("bindings", [])
+        bindings = sparql_bindings(resp.json())
         self._cache.set(cache_key, bindings)
         return bindings, "sparql"
 

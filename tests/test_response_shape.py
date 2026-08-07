@@ -25,12 +25,14 @@ import pytest
 import respx
 
 from swiss_electricity_mcp.api_client import (
+    LINDAS_SPARQL,
     OPENDATA_SWISS_CKAN,
     ZURICH_OGD_CKAN,
     CkanDiscoveryClient,
     ElComSparqlClient,
     EnergyDashboardClient,
     UpstreamSchemaError,
+    sparql_bindings,
 )
 from swiss_electricity_mcp.server import (
     AppContext,
@@ -186,3 +188,56 @@ def test_the_helper_is_wired_to_both_call_sites():
 # Sanity: die opendata.swiss-Route existiert und zeigt woanders hin als Zürich.
 def test_the_two_ckan_hosts_are_distinct():
     assert OPENDATA_SWISS_CKAN != ZURICH_OGD_CKAN
+
+
+# --- Die zweite Quelle: LINDAS SPARQL ----------------------------------------
+
+
+class TestSparqlBindings:
+    """`resp.json().get("results", {}).get("bindings", [])` — zwei Defaults.
+
+    Fiel einer weg, kamen null Zeilen heraus: aus einem Fehler wurde eine
+    gültige Aussage über die Schweizer Stromtarife. Die Form ist hier nicht
+    geraten — SPARQL 1.1 schreibt `results.bindings` vor, auch für ein leeres
+    Ergebnis. Fehlt es, hat nicht LINDAS nichts gefunden; dann ist die Antwort
+    keine SPARQL-Antwort mehr, etwa eine Fehlerseite mit HTTP 200.
+    """
+
+    def test_a_missing_results_is_not_an_empty_query(self):
+        with pytest.raises(UpstreamSchemaError) as excinfo:
+            sparql_bindings({"head": {"vars": ["x"]}})
+        message = str(excinfo.value)
+        assert "'head'" in message, message
+        assert "keine leere Abfrage" in message
+
+    def test_a_missing_bindings_is_rejected(self):
+        with pytest.raises(UpstreamSchemaError) as excinfo:
+            sparql_bindings({"results": {"distinct": False}})
+        assert "bindings" in str(excinfo.value)
+
+    def test_an_html_error_page_with_http_200_is_rejected(self):
+        """Der Fall, den `swiss-courts-mcp` unabhängig entdeckt hat.
+
+        Ein Bot-Schutz oder eine Fehlerseite antwortet mit HTTP 200 und einem
+        fremden Körper. Ohne Bestätigung liest sich das wie null Treffer.
+        """
+        with pytest.raises(UpstreamSchemaError) as excinfo:
+            sparql_bindings(["<html>", "Service unavailable"])
+        assert "list" in str(excinfo.value)
+
+    def test_an_empty_result_set_still_passes(self):
+        """Die Gegenrichtung: LINDAS hat geantwortet und nichts gefunden."""
+        assert sparql_bindings({"head": {}, "results": {"bindings": []}}) == []
+
+    def test_a_normal_result_set_still_passes(self):
+        rows = [{"total": {"value": "23.45"}}]
+        assert sparql_bindings({"results": {"bindings": rows}}) == rows
+
+    def test_the_client_uses_the_helper(self):
+        """Ein Helfer, der nirgends hängt, ist Dekoration."""
+        from pathlib import Path
+
+        source = Path(__file__).parent.parent / "src" / "swiss_electricity_mcp" / "api_client.py"
+        body = source.read_text(encoding="utf-8")
+        assert "sparql_bindings(resp.json())" in body
+        assert LINDAS_SPARQL in body

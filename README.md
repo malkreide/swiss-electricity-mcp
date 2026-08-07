@@ -233,6 +233,38 @@ envelope/attribution invariants, plus **security** (egress allow-list, SPARQL
 escaping, tool-definition lock). CI runs ruff + `pytest -m "not live"` on
 Python 3.11–3.13.
 
+### Where the test data comes from
+
+The fixtures under `tests/fixtures/` are **recorded from the live sources** and
+dated. Source, retrieval date, selection rule and SHA-256 for every file:
+[`tests/fixtures/PROVENANCE.md`](tests/fixtures/PROVENANCE.md).
+
+```bash
+python scripts/record_fixtures.py   # re-record
+```
+
+**The requests are built by the production code.** The script calls
+`ElComSparqlClient` and `EnergyDashboardClient` and captures the answer through
+an httpx transport, rather than retyping the SPARQL alongside. A fixture that
+answers a slightly different question than the server asks proves the wrong
+answer — quietly, because it looks plausible. At 40 lines of SPARQL, "slightly
+different" is the normal case, not the exception.
+
+Two selection rules are deliberately more than "the first N":
+
+- **The storage-lake series runs into the future.** After the last measured day
+  come rows with a `null` measurement — 94 of them on the recording day. They
+  are kept on purpose: without them, no test could show that the tool skips
+  them.
+- **What counts as a measurement is named per file, not guessed.** The first
+  version of this used "any field other than `date` is non-null", which is
+  wrong: those future rows do carry values — the five-year reference curves —
+  just no measurement.
+
+Where a search is trimmed, `count` keeps its real value: it says how much is
+*not* in the file.
+
+
 ---
 
 ## MCP protocol version

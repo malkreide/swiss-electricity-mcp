@@ -1,0 +1,397 @@
+[
+  {
+    "id": "5c336ea6-33e4-4392-a3e7-e8a705cb4b1a",
+    "date": "2020-01-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "ed14b276-3e9b-4f59-bf84-c860bec50bd9",
+    "date": "2020-02-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "28d1ea85-d68d-4adb-95e4-8cd775872132",
+    "date": "2020-03-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "bd41b345-3836-4b37-b1de-60c9657f83cb",
+    "date": "2020-04-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "e0343e19-f348-499b-8a4d-b89c7b700f47",
+    "date": "2020-05-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "82cae7d2-af32-45a2-a627-42aa2684995d",
+    "date": "2020-06-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "a93016f4-e33c-4e15-95b6-9fc71624557b",
+    "date": "2020-07-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "0586abe6-ced0-4e79-9277-845fb5db3b93",
+    "date": "2020-08-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "204f9097-e0df-4127-9849-5e9ba7f39290",
+    "date": "2020-09-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "c2d2223d-49f6-4961-8786-e8346c3988cc",
+    "date": "2020-10-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "816d56b9-fe30-41fd-a63e-26b2f2c0b025",
+    "date": "2020-11-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "9ffea5ae-71d0-4889-9def-8308d3750f16",
+    "date": "2020-12-01",
+    "preisIndexiert": 74
+  },
+  {
+    "id": "fa47997f-1969-48f5-aeb7-125b3e517853",
+    "date": "2021-01-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "29db701c-02df-4dc6-983f-fac59cd0d2e5",
+    "date": "2021-02-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "f0441770-975c-4903-ba3e-b04d25aee731",
+    "date": "2021-03-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "257394c8-1abe-453b-8405-223f7e440571",
+    "date": "2021-04-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "63627362-1204-43f2-bb9a-799692aae5fb",
+    "date": "2021-05-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "17b5a83f-39b5-48b7-9b6f-416fe40cf13f",
+    "date": "2021-06-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "4d1596ca-56cf-4f08-b208-e4dadfe29317",
+    "date": "2021-07-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "2803fd62-3ff9-411c-a761-09bbd31d2a73",
+    "date": "2021-08-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "89553c78-8f50-47c7-b82e-86da6d6d5cfe",
+    "date": "2021-09-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "8464776f-bd47-49a2-81cb-53705a87a805",
+    "date": "2021-10-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "f39d472b-1994-4d92-934d-a23822332e59",
+    "date": "2021-11-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "8b088a09-758d-4c5c-ad15-303b049a0f9d",
+    "date": "2021-12-01",
+    "preisIndexiert": 75
+  },
+  {
+    "id": "cb4603ba-01e7-4b5a-939c-1946a786fe0a",
+    "date": "2022-01-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "4dd3a27f-caee-411b-b24b-5ff2a1d1c796",
+    "date": "2022-02-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "9cf673f9-a7b7-4617-a5a2-d08249b50ed0",
+    "date": "2022-03-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "0ffb96a6-2f61-46ee-a7af-83c5db1e99c3",
+    "date": "2022-04-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "b45eafd8-a6f4-424d-9927-d80829989595",
+    "date": "2022-05-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "c73a2cb7-8e58-4abc-aee9-c4ba3a667c81",
+    "date": "2022-06-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "22a3986c-d257-4e84-8fda-51e812d7f5b2",
+    "date": "2022-07-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "38508f01-93dc-4082-91ee-2b76137f3e66",
+    "date": "2022-08-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "e63be089-dd9b-429b-97e3-d9b7c0228f0a",
+    "date": "2022-09-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "572830a4-6bf0-4447-b757-ea253c537a3e",
+    "date": "2022-10-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "cbd9331e-c432-470a-b1d8-f838490a8235",
+    "date": "2022-11-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "b126c344-c768-4687-bb83-99e80735a364",
+    "date": "2022-12-01",
+    "preisIndexiert": 76
+  },
+  {
+    "id": "556d7d87-6688-4ef9-ba38-9568450e4065",
+    "date": "2023-01-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "2dd635dc-e0b5-4714-bdc8-3a91510d05e3",
+    "date": "2023-02-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "53f0f220-12a9-4d2c-8396-138c5cb14d86",
+    "date": "2023-03-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "315e5823-6c28-4ffd-a14d-a4b160d5bdb3",
+    "date": "2023-04-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "2d5d2c39-22e0-4c38-a816-dfd237127458",
+    "date": "2023-05-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "e32ede81-8a6e-4914-9e04-122c6cec7c3c",
+    "date": "2023-06-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "dd2250db-797f-4f46-972b-052c380be0bd",
+    "date": "2023-07-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "1f228ab6-272a-45ec-8a24-807d9d4e25df",
+    "date": "2023-08-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "e1c040e6-58d9-474e-98b0-8137ff9de4f0",
+    "date": "2023-09-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "957c4c29-b4c9-4bc5-8bf0-bfb2ad2eb5cc",
+    "date": "2023-10-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "5e96fe4a-a9ae-48fd-8a9c-70efa4a6f9c0",
+    "date": "2023-11-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "912e1afc-9d39-44b8-8876-a75f899c3d86",
+    "date": "2023-12-01",
+    "preisIndexiert": 94
+  },
+  {
+    "id": "97760942-f5e9-46a4-8bdf-f322b5f4c5cc",
+    "date": "2024-01-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "1613ed3d-0859-4ade-aff6-f89128cf1bb4",
+    "date": "2024-02-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "ed2a58d4-cda7-4dc2-a8f1-0b05a8fb4bfd",
+    "date": "2024-03-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "d25d997a-822b-4fc2-96f3-6a7f8663f50d",
+    "date": "2024-04-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "cbed414e-4f07-4983-97c8-57de54d90e22",
+    "date": "2024-05-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "1f2d5cca-268d-4eaa-b655-4c7260ba74ae",
+    "date": "2024-06-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "b6d99121-273a-4668-969a-6dad97c4fde2",
+    "date": "2024-07-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "db4aaba5-c8aa-4c6a-8a75-4c6d0a7713ec",
+    "date": "2024-08-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "102d800d-1ec4-4b5d-b27a-613b8463652c",
+    "date": "2024-09-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "149f6b65-5eb0-4030-a83c-43df38af9bf3",
+    "date": "2024-10-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "bc610d2a-5e73-40be-ac1d-64001fba0ac1",
+    "date": "2024-11-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "c016a01a-3bfc-43d9-a961-591fe398c8bd",
+    "date": "2024-12-01",
+    "preisIndexiert": 109
+  },
+  {
+    "id": "4b41f1e4-844c-468b-83b7-ce97c98e88dc",
+    "date": "2025-01-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "bd8e46c7-269b-4274-93e7-a0c5ee61be83",
+    "date": "2025-02-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "ecd1cd52-c25d-4c87-a2a2-df4f9d2b06b5",
+    "date": "2025-03-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "0d098ed5-ada9-4983-b3cc-005cb525b685",
+    "date": "2025-04-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "3b67adb4-2ebd-4f60-b042-bcc995a743d9",
+    "date": "2025-05-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "fdf827d4-59a4-494a-9ed2-d1c345aa302e",
+    "date": "2025-06-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "c017fe5d-9fd9-4cc9-bfbf-3980d3aedb72",
+    "date": "2025-07-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "614339ed-5d83-400e-9041-67e531506e98",
+    "date": "2025-08-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "6640ac23-ad3f-4b49-954d-34d71c0e6594",
+    "date": "2025-09-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "83bbe347-669b-482a-b338-26e256fe22a2",
+    "date": "2025-10-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "5e5eade6-f898-487d-9306-912e4554835c",
+    "date": "2025-11-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "5d971596-f7fe-433f-9df3-a8417b529378",
+    "date": "2025-12-01",
+    "preisIndexiert": 100
+  },
+  {
+    "id": "ee1bbf10-7821-4e65-b284-bae1ce39ffe0",
+    "date": "2026-01-01",
+    "preisIndexiert": 97
+  },
+  {
+    "id": "e61d0097-50f6-40a6-b26c-955c4c912a1a",
+    "date": "2026-02-01",
+    "preisIndexiert": 97
+  },
+  {
+    "id": "16bb082b-212c-4e75-9830-5562aeb2d64e",
+    "date": "2026-03-01",
+    "preisIndexiert": 97
+  },
+  {
+    "id": "28c13417-a7de-4a9c-b9a3-9db8b70f9be1",
+    "date": "2026-04-01",
+    "preisIndexiert": 97
+  },
+  {
+    "id": "a1c977a9-6ae2-462d-954b-b74d906feb1e",
+    "date": "2026-05-01",
+    "preisIndexiert": 97
+  },
+  {
+    "id": "7390475a-f9ea-4d4c-bb30-da4122ca1a0f",
+    "date": "2026-06-01",
+    "preisIndexiert": 97
+  },
+  {
+    "id": "217df43e-af1f-46a2-a9eb-0c24b763ae2a",
+    "date": "2026-07-01",
+    "preisIndexiert": 97
+  }
+]

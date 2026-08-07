@@ -152,6 +152,38 @@ PYTHONPATH=src pytest tests/ -m live -v
 
 19 Unit-Tests decken die drei Vertragsschichten ab: **Happy** (Antwort-Parsing), **Retry** (5xx, 429, 4xx), **Timeout** (Netzwerkfehler → saubere `UpstreamUnreachableError`) plus Envelope-/Attribution-Invarianten.
 
+### Woher die Testdaten stammen
+
+Die Fixtures unter `tests/fixtures/` sind **von den echten Quellen
+aufgezeichnet** und datiert. Quelle, Abrufdatum, Auswahlregel und SHA-256 je
+Datei: [`tests/fixtures/PROVENANCE.md`](tests/fixtures/PROVENANCE.md).
+
+```bash
+python scripts/record_fixtures.py   # neu aufzeichnen
+```
+
+**Die Anfragen baut der Produktivcode.** Das Skript ruft `ElComSparqlClient` und
+`EnergyDashboardClient` auf und fängt die Antwort über einen httpx-Transport ab,
+statt die SPARQL-Abfragen daneben noch einmal zu tippen. Eine Fixture, die eine
+leicht andere Frage beantwortet als der Server stellt, belegt die falsche
+Antwort — und zwar unauffällig, weil sie plausibel aussieht. Bei 40 Zeilen
+SPARQL ist «leicht anders» der Normalfall, nicht die Ausnahme.
+
+Zwei Auswahlregeln sind bewusst mehr als «die ersten N»:
+
+- **Die Speicherseen-Reihe läuft in die Zukunft.** Nach dem letzten gemessenen
+  Tag folgen Zeilen ohne Messung — am Aufzeichnungstag 94 Stück. Sie bleiben
+  absichtlich drin: Ohne sie könnte kein Test zeigen, dass das Werkzeug sie
+  überspringt.
+- **Was als Messung zählt, steht je Datei ausgeschrieben und wird nicht
+  geraten.** Die erste Fassung nahm «irgendein Feld ausser `date` ist nicht
+  null» — falsch, denn die Zukunftszeilen tragen sehr wohl Werte (die
+  Fünfjahres-Referenzkurven), nur keine Messung.
+
+Wo eine Suche gekürzt ist, bleibt `count` auf dem echten Wert: Er sagt, wie viel
+**nicht** in der Datei steht.
+
+
 ---
 
 ## Bekannte Einschränkungen

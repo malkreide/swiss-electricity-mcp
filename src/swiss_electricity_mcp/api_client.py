@@ -29,6 +29,15 @@ from .observability import get_logger
 
 DASHBOARD_BASE = "https://www.energiedashboard.admin.ch/api"
 LINDAS_SPARQL = "https://lindas.admin.ch/query"
+
+# Die drei ElCom-Cubes. Sie teilen sich seit einer Umstellung der Quelle EINEN
+# Praedikat-Namensraum (`electricityprice/dimension/*`) und unterscheiden sich
+# nur noch ueber `cube.link/observationSet`. Frueher trug jeder Cube seinen
+# eigenen Namensraum, und `measure/` gab es als zweiten neben `dimension/` —
+# beides existiert nicht mehr, und Abfragen dagegen liefern still null Zeilen.
+ELCOM_CUBE_MUNICIPALITY = "https://energy.ld.admin.ch/elcom/electricityprice"
+ELCOM_CUBE_SWISS = "https://energy.ld.admin.ch/elcom/electricityprice-swiss"
+ELCOM_CUBE_CANTON = "https://energy.ld.admin.ch/elcom/electricityprice-canton"
 OPENDATA_SWISS_CKAN = "https://opendata.swiss/api/3/action"
 ZURICH_OGD_CKAN = "https://data.stadt-zuerich.ch/api/3/action"
 
@@ -542,13 +551,13 @@ WHERE {{
        <https://energy.ld.admin.ch/elcom/electricityprice/dimension/category> ?category ;
        <https://energy.ld.admin.ch/elcom/electricityprice/dimension/operator> ?operator ;
        <https://energy.ld.admin.ch/elcom/electricityprice/dimension/product> ?product ;
-       <https://energy.ld.admin.ch/elcom/electricityprice/measure/total> ?total .
-  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/measure/energy> ?energy }}
-  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/measure/gridusage> ?gridusage }}
-  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/measure/charge> ?charge }}
-  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/measure/aidfee> ?aidfee }}
-  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/measure/energyname> ?energyName }}
-  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/measure/gridusagename> ?gridusageName }}
+       <https://energy.ld.admin.ch/elcom/electricityprice/dimension/total> ?total .
+  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/energy> ?energy }}
+  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/gridusage> ?gridusage }}
+  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/charge> ?charge }}
+  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/aidfee> ?aidfee }}
+  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/energyname> ?energyName }}
+  OPTIONAL {{ ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/gridusagename> ?gridusageName }}
   BIND(REPLACE(STR(?category), ".*/", "") AS ?categoryCode)
   BIND(REPLACE(STR(?product), ".*/", "") AS ?productLabel)
   OPTIONAL {{ <https://ld.admin.ch/municipality/{bfs_nr}> schema:name ?munLabel }}
@@ -575,12 +584,19 @@ LIMIT {limit}
             period_filter += f"FILTER(?period >= {period_from}) "
         if period_to is not None:
             period_filter += f"FILTER(?period <= {period_to}) "
+        # Der Cube wird ueber `cube.link/observationSet` eingegrenzt, nicht mehr
+        # ueber einen eigenen Praedikat-Namensraum: Alle drei ElCom-Cubes teilen
+        # sich inzwischen `electricityprice/dimension/*`. Ohne diese Klammer
+        # kaemen die Gemeinde-Beobachtungen mit — ein Median ueber die falsche
+        # Grundmenge, und nichts an der Antwort wuerde es verraten.
         query = f"""
 SELECT ?period ?categoryCode ?total
 WHERE {{
-  ?obs <https://energy.ld.admin.ch/elcom/electricityprice-swiss/dimension/period> ?period ;
-       <https://energy.ld.admin.ch/elcom/electricityprice-swiss/dimension/category> ?category ;
-       <https://energy.ld.admin.ch/elcom/electricityprice-swiss/measure/total> ?total .
+  <{ELCOM_CUBE_SWISS}> <https://cube.link/observationSet> ?set .
+  ?set <https://cube.link/observation> ?obs .
+  ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/period> ?period ;
+       <https://energy.ld.admin.ch/elcom/electricityprice/dimension/category> ?category ;
+       <https://energy.ld.admin.ch/elcom/electricityprice/dimension/total> ?total .
   BIND(REPLACE(STR(?category), ".*/", "") AS ?categoryCode)
   {category_filter}
   {period_filter}
@@ -609,10 +625,12 @@ LIMIT {limit}
 PREFIX schema: <http://schema.org/>
 SELECT ?period ?categoryCode ?total ?cantonLabel
 WHERE {{
-  ?obs <https://energy.ld.admin.ch/elcom/electricityprice-canton/dimension/period> ?period ;
-       <https://energy.ld.admin.ch/elcom/electricityprice-canton/dimension/canton> ?cantonURI ;
-       <https://energy.ld.admin.ch/elcom/electricityprice-canton/dimension/category> ?category ;
-       <https://energy.ld.admin.ch/elcom/electricityprice-canton/measure/total> ?total .
+  <{ELCOM_CUBE_CANTON}> <https://cube.link/observationSet> ?set .
+  ?set <https://cube.link/observation> ?obs .
+  ?obs <https://energy.ld.admin.ch/elcom/electricityprice/dimension/period> ?period ;
+       <https://energy.ld.admin.ch/elcom/electricityprice/dimension/canton> ?cantonURI ;
+       <https://energy.ld.admin.ch/elcom/electricityprice/dimension/category> ?category ;
+       <https://energy.ld.admin.ch/elcom/electricityprice/dimension/total> ?total .
   ?cantonURI schema:name ?cantonLabel .
   FILTER(STR(?cantonLabel) = "{_sparql_escape_literal(canton)}")
   BIND(REPLACE(STR(?category), ".*/", "") AS ?categoryCode)

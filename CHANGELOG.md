@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Auch die SPARQL-Antworten von LINDAS wurden bei einer Strukturänderung zu
+  null Zeilen.** `_sparql` las
+  `resp.json().get("results", {}).get("bindings", [])` — zwei Defaults
+  hintereinander. Fiel einer weg, kamen null Zeilen heraus, und aus einem
+  Fehler wurde eine gültige Aussage über die Schweizer Stromtarife.
+
+  Die Form ist hier nicht geraten: Die SPARQL-1.1-Results-Empfehlung des W3C
+  schreibt `results.bindings` vor, **auch für ein leeres Ergebnis**. Fehlt es,
+  hat nicht LINDAS nichts gefunden — dann ist die Antwort keine SPARQL-Antwort
+  mehr, etwa eine Fehlerseite mit HTTP 200.
+
+  `sparql_bindings()` bestätigt beide Ebenen und wirft sonst
+  `UpstreamSchemaError` — denselben Typ, den der CKAN-Pfad seit dem letzten
+  Release nutzt. Ein leeres Ergebnis (`bindings: []`) bleibt eine Aussage der
+  Quelle.
+
+  Nachtrag zum Portfolio-Durchlauf
+  ([`FID-006`](https://github.com/malkreide/mcp-audit-skill/blob/main/checks/FID-006.md)):
+  Der CKAN-Sweep reparierte den einen Pfad dieses Servers, LINDAS ist der
+  andere.
+
+### Fixed
+
 - **Eine Strukturänderung von CKAN wurde zu «keine Treffer».** Beide
   Datensatz-Suchen — `opendata.swiss` und `data.stadt-zuerich.ch` — schrieben
   `result = data.get("result") or {}` und lasen danach `result.get("results", [])`.

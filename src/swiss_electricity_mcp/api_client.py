@@ -142,6 +142,51 @@ class UpstreamUnreachableError(Exception):
     """Raised when an upstream is unreachable after exhausted retries."""
 
 
+class UpstreamSchemaError(Exception):
+    """Die Antwort kam an, sieht aber anders aus, als der Code sie liest.
+
+    Bewusst neben ``UpstreamUnreachableError`` und nicht darunter: Dort ist die
+    Quelle nicht erreichbar, hier hat sie geantwortet und ihre Form geändert.
+    Die Behebung ist eine andere — Warten hilft beim einen, beim anderen nie.
+    """
+
+
+def ckan_result(data: object, action: str) -> dict:
+    """Den ``result``-Block einer CKAN-Antwort holen, oder laut scheitern.
+
+    ``data.get("result") or {}`` schrieb jede Strukturänderung in ein gültiges
+    leeres Ergebnis um: Die Suche gelang, die Trefferliste war leer, und für das
+    Modell war das nicht von «opendata.swiss kennt das nicht» zu unterscheiden
+    (FID-006).
+
+    Der ``or {}``-Zweig war dabei noch etwas weiter gefasst als ein Default —
+    er verschluckte auch ein ``result: null``, also genau den Fall, in dem die
+    Quelle ausdrücklich sagt, dass sie nichts hat.
+    """
+    if not isinstance(data, dict):
+        raise UpstreamSchemaError(
+            f"CKAN `{action}`: Antwort ist {type(data).__name__} und kein Objekt."
+        )
+    if "result" not in data:
+        raise UpstreamSchemaError(
+            f"CKAN `{action}`: Antwort ohne `result`. Vorhandene Schlüssel: "
+            f"{sorted(data)}. Das ist keine Leermenge — die Struktur der Quelle "
+            "hat sich geändert."
+        )
+    result = data["result"]
+    if not isinstance(result, dict):
+        raise UpstreamSchemaError(
+            f"CKAN `{action}`: `result` ist {type(result).__name__} und kein Objekt."
+        )
+    if "results" not in result:
+        raise UpstreamSchemaError(
+            f"CKAN `{action}`: `result` ohne `results`. Vorhandene Schlüssel: "
+            f"{sorted(result)}. `package_search` liefert `results` auch bei null "
+            "Treffern — dies ist keine leere Suche."
+        )
+    return result
+
+
 class EgressNotAllowedError(ValueError):
     """Raised when an outbound request targets a non-allow-listed host or scheme."""
 

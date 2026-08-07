@@ -33,6 +33,7 @@ from .api_client import (
     EnergyDashboardClient,
     UpstreamUnreachableError,
     assert_url_allowed,
+    ckan_result,
     sparql_value,
     utc_now_iso,
 )
@@ -610,7 +611,7 @@ async def consumption_search_bfe_datasets(
     )
     if not data.get("success"):
         raise UpstreamUnreachableError("opendata.swiss returned success=false")
-    result = data.get("result") or {}
+    result = ckan_result(data, "package_search (opendata.swiss)")
     datasets: list[CkanDataset] = []
     for r in result.get("results", []):
         title = r.get("title")
@@ -668,7 +669,7 @@ async def consumption_search_zurich(
     )
     if not data.get("success"):
         raise UpstreamUnreachableError("data.stadt-zuerich.ch returned success=false")
-    result = data.get("result") or {}
+    result = ckan_result(data, "package_search (data.stadt-zuerich.ch)")
     datasets: list[CkanDataset] = []
     for r in result.get("results", []):
         title = r.get("title") or "?"

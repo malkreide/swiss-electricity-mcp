@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Eine Strukturänderung von CKAN wurde zu «keine Treffer».** Beide
+  Datensatz-Suchen — `opendata.swiss` und `data.stadt-zuerich.ch` — schrieben
+  `result = data.get("result") or {}` und lasen danach `result.get("results", [])`.
+
+  Fällt `result` weg, gelang die Suche, die Trefferliste war leer, und
+  `consumption_search_zurich` meldete `match_type: "none"` samt hilfreichem
+  Vorschlag: **die exakt gleiche Antwort wie bei einer korrekten Suche ohne
+  Treffer**. Die ARCH-003-Freundlichkeit dieses Servers machte den Ausfall
+  dadurch noch überzeugender.
+
+  `or {}` war zudem weiter gefasst als ein blosser Default — es verschluckte
+  auch ein `result: null`, also genau den Fall, in dem die Quelle ausdrücklich
+  sagt, dass sie nichts hat.
+
+  Beide Stellen laufen jetzt über `ckan_result()`, das `result` **und**
+  `results` bestätigt und sonst `UpstreamSchemaError` wirft, mit den tatsächlich
+  vorhandenen Schlüsseln in der Meldung. Der Typ steht bewusst neben
+  `UpstreamUnreachableError` und nicht darunter: Dort ist die Quelle nicht
+  erreichbar, hier hat sie geantwortet und ihre Form geändert — Warten hilft
+  beim einen, beim anderen nie.
+
+  Die Meldung nennt die **Aktion samt Host**, weil sich zwei verschiedene
+  CKAN-Instanzen denselben Helfer teilen; eine Meldung, die nur «CKAN» sagt,
+  schickt den Leser in das falsche Portal.
+
+  Eine echte Leermenge (`count: 0` bei vorhandenem `results`) bleibt
+  unverändert `match_type: "none"` mit Vorschlag — ein Wächter, der die
+  mitfängt, wird nach dem zweiten Fehlalarm abgeschaltet.
+
+  Gefunden im Portfolio-Durchlauf zu
+  [`FID-006`](https://github.com/malkreide/mcp-audit-skill/blob/main/checks/FID-006.md)
+  am 2026-08-07: Acht Server im Portfolio sprechen mit CKAN, alle acht prüfen
+  das `success`-Envelope, sieben defaulteten `result` danach.
+
+### Fixed
+
 - **The retry had six defects, all inherited from the shared template.** This
   server copied its retry from `reference/retry_backoff.py` in
   [mcp-data-source-probe-skill](https://github.com/malkreide/mcp-data-source-probe-skill),

@@ -9,6 +9,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Alle drei ElCom-Tarif-Werkzeuge lieferten seit einer Umstellung der Quelle
+  nichts.** LINDAS hat den Prädikat-Namensraum der Preis-Cubes umgebaut: Der
+  Zweig `.../measure/*` existiert nicht mehr — `total`, `energy`, `gridusage`,
+  `charge` und `aidfee` stehen heute unter `.../dimension/*`. Ebenso weg sind
+  die cube-eigenen Namensräume: `electricityprice-swiss/…` und
+  `electricityprice-canton/…` gibt es nicht; alle drei Cubes teilen sich
+  `electricityprice/dimension/*` und unterscheiden sich nur noch über
+  `cube.link/observationSet`.
+
+  `measure/total` war in jeder der drei Abfragen ein **Pflicht-Tripel**. Das
+  Ergebnis war deshalb nicht ein Fehler, sondern HTTP 200 mit **null Zeilen** —
+  für jede Gemeinde, jeden Kanton, jedes Jahr. `tariff_get_by_municipality`
+  antwortete auf «Was kostet Strom in Zürich?» mit einer leeren, wohlgeformten
+  Antwort. Gemessen am 2026-08-07: Zürich (BFS 261) hat 291 Beobachtungen im
+  Cube; die Abfrage des Servers fand null.
+
+  Korrigiert und live gegengeprüft: Zürich liefert wieder Tarife (C1, 2026:
+  25.83 Rp/kWh, EWZ), der Schweizer Median 25.65 Rp/kWh, Luzern 23.83.
+
+- **Vier von fünf Speicherseen-Regionen lieferten die Schweizer Zahlen.** Das
+  Werkzeug bietet `totalCH`, `Wallis`, `Tessin`, `Graubuenden` und `ZentralOst`
+  an; die Quelle führt `totalCH`, `wallis`, `tessin`, `graubuenden` und
+  `uebrigCH`. Der Zugriff lautete `data.get(region) or data.get("totalCH")` —
+  vier der fünf Werte trafen also nie, und der Rückfall lieferte die
+  gesamtschweizerischen Werte, während die Antwort weiterhin den Namen der
+  Region trug. Richtig aussehende Daten unter falschem Etikett.
+
+  Neu gibt es eine ausgeschriebene Zuordnung; ein fehlender Schlüssel wirft
+  `UpstreamSchemaError` mit den tatsächlich vorhandenen Schlüsseln in der
+  Meldung, statt still auf etwas anderes auszuweichen.
+
+- **Die Speicherseen-Zeitreihe kam standardmässig leer zurück.** Die Reihe läuft
+  in die Zukunft: Nach dem letzten gemessenen Tag folgen Platzhalter ohne
+  Messung. Gemessen am 2026-08-07: 455 Einträge, davon 361 mit Wert und **94
+  leere am Ende**. Der Standardschnitt `entries[-52:]` traf damit **52 Zeilen
+  ohne eine einzige Zahl**.
+
+  Aus demselben Grund war `capacity_gwh` immer `null`: gelesen wurde
+  `entries[-1]`, und das ist ein Platzhalter. Der letzte gemessene Tag weist
+  8895 GWh aus.
+
+  Beides behoben — die Reihe überspringt Zeilen ohne Messung, die Kapazität
+  kommt aus dem letzten Eintrag, der eine hat.
+
 - **Auch die SPARQL-Antworten von LINDAS wurden bei einer Strukturänderung zu
   null Zeilen.** `_sparql` las
   `resp.json().get("results", {}).get("bindings", [])` — zwei Defaults
@@ -105,6 +149,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   New `tests/test_retry_policy.py`: `Retry-After` in both forms plus the
   refusal cases, the jitter spread, that the cap binds after jittering, and the
   one-sided `Retry-After` jitter.
+
+### Added
+
+- **Aufgezeichnete Fixture-Herkunft.** `scripts/record_fixtures.py` holt neun
+  Antworten von den echten Quellen — die drei ElCom-Abfragen über LINDAS, die
+  vier Endpunkte des BFE-Energiedashboards und die beiden CKAN-Suchen — und
+  schreibt `tests/fixtures/PROVENANCE.md` mit Quelle, Datum, Auswahlregel und
+  SHA-256 je Datei.
+
+  **Die Anfragen baut der Produktivcode.** Das Skript ruft die Client-Klassen
+  auf und fängt die Antwort über einen httpx-Transport ab, statt die
+  SPARQL-Abfragen daneben noch einmal zu tippen. Eine Fixture, die eine leicht
+  andere Frage beantwortet als der Server stellt, belegt die falsche Antwort —
+  unauffällig, weil sie plausibel aussieht. Bei 40 Zeilen SPARQL ist «leicht
+  anders» der Normalfall.
+
+  Zwei Auswahlregeln sind bewusst mehr als «die ersten N», und die zweite ist
+  eine Korrektur an mir selbst:
+
+  - Die Speicherseen-Reihe behält die Zeilen **ohne** Messung. Ohne sie könnte
+    kein Test zeigen, dass das Werkzeug sie überspringt.
+  - Was als Messung zählt, steht je Datei ausgeschrieben. Die erste Fassung
+    nahm «irgendein Feld ausser `date` ist nicht null» — falsch, denn die
+    Zukunftszeilen tragen sehr wohl Werte (die Fünfjahres-Referenzkurven), nur
+    keine Messung. Das generische Kriterium hielt sie für echt und schnitt
+    genau die Zeilen weg, wegen derer es die Fixture gibt.
+
+  Das Skript bricht laut ab, wenn eine ElCom-Abfrage nichts findet, wenn ein
+  `LIMIT` nicht mehr wirkt, wenn CKAN mehr liefert als `rows` erlaubt oder wenn
+  eine gekürzte Zeitreihe kein Messfeld hinterlegt hat.
+
+  `tests/test_recorded_sources.py` hält Abfragen und Verarbeitung dagegen;
+  `tests/fixture_data.py` lädt und behandelt einen fehlenden Namen als Fehler
+  statt als leere Struktur.
 
 ## [0.2.5] - 2026-08-02
 

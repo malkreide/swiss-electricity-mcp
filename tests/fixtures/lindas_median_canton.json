@@ -1,0 +1,119 @@
+{
+  "head": {
+    "vars": [
+      "period",
+      "categoryCode",
+      "total",
+      "cantonLabel"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C1"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "23.833"
+        },
+        "cantonLabel": {
+          "xml:lang": "de",
+          "type": "literal",
+          "value": "Luzern"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C1"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "24.533"
+        },
+        "cantonLabel": {
+          "xml:lang": "de",
+          "type": "literal",
+          "value": "Luzern"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C2"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "22.22"
+        },
+        "cantonLabel": {
+          "xml:lang": "de",
+          "type": "literal",
+          "value": "Luzern"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C2"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "22.986"
+        },
+        "cantonLabel": {
+          "xml:lang": "de",
+          "type": "literal",
+          "value": "Luzern"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C3"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "22.927"
+        },
+        "cantonLabel": {
+          "xml:lang": "de",
+          "type": "literal",
+          "value": "Luzern"
+        }
+      }
+    ]
+  }
+}

@@ -31,6 +31,7 @@ from .api_client import (
     EgressNotAllowedError,
     ElComSparqlClient,
     EnergyDashboardClient,
+    UpstreamSchemaError,
     UpstreamUnreachableError,
     assert_url_allowed,
     ckan_result,
@@ -274,6 +275,20 @@ async def dashboard_get_consumption_forecast(
     return _format_response(response, response_format)
 
 
+# Die Regionen, wie das Werkzeug sie anbietet, und die Schluessel, unter denen
+# die Quelle sie fuehrt. Die beiden sind NICHT dasselbe: Das Energiedashboard
+# schreibt die Regionen klein, und «ZentralOst» heisst dort `uebrigCH`. Genau
+# diese Zuordnung fehlte, und der stille Rueckfall auf `totalCH` machte aus dem
+# Fehlgriff eine Antwort.
+STORAGE_LAKE_REGION_KEYS = {
+    "totalCH": "totalCH",
+    "Wallis": "wallis",
+    "Tessin": "tessin",
+    "Graubuenden": "graubuenden",
+    "ZentralOst": "uebrigCH",
+}
+
+
 @mcp.tool(
     description=(
         "Get storage-lake (Speichersee) fill level for Switzerland or a region: "
@@ -294,9 +309,26 @@ async def dashboard_get_storage_lakes(
 ) -> str:
     """Speicherseen-Fuellstand (Wochenwerte) fuer Schweiz oder Region."""
     data, prov, retrieved = await _app(ctx).dashboard.get_storage_lakes()
-    block = data.get(region) or data.get("totalCH") or {}
+    key = STORAGE_LAKE_REGION_KEYS[region]
+    if key not in data:
+        # Frueher stand hier `data.get(region) or data.get("totalCH")`. Vier der
+        # fuenf angebotenen Regionen trafen nie — die Quelle schreibt sie klein,
+        # und «ZentralOst» heisst dort `uebrigCH`. Der Fallback lieferte
+        # daraufhin die Schweizer Zahlen, und die Antwort trug trotzdem den
+        # Namen der Region: richtig aussehende Daten unter falschem Etikett.
+        raise UpstreamSchemaError(
+            f"Energiedashboard: Region {region!r} (Schluessel {key!r}) fehlt in "
+            f"der Antwort. Vorhanden: {sorted(data)}. Das ist keine Region ohne "
+            "Daten — die Struktur der Quelle hat sich geaendert."
+        )
+    block = data[key] or {}
     current = block.get("currentEntry") or {}
-    entries = block.get("entries") or []
+    # Die Reihe laeuft in die Zukunft: Nach dem letzten gemessenen Tag folgen
+    # Platzhalter mit lauter `null`. Gemessen am 2026-08-07: 455 Eintraege,
+    # davon 361 mit Wert und **94 leere am Ende**. `entries[-52:]` traf damit
+    # 52 Zeilen ohne eine einzige Zahl — die Antwort war formal in Ordnung und
+    # inhaltlich leer, und nichts daran sagte es.
+    entries = [e for e in (block.get("entries") or []) if e.get("speicherstandProzent") is not None]
     parsed = [
         StorageLakeEntry(
             date=e.get("date", ""),
@@ -308,7 +340,17 @@ async def dashboard_get_storage_lakes(
         )
         for e in entries[-limit_weeks:]
     ]
-    capacity = entries[-1].get("speicherstandBei100ProzentInGWh") if entries else None
+    # Aus dem letzten Eintrag MIT Kapazitaet, nicht aus dem letzten ueberhaupt:
+    # Der war ein Platzhalter, und `capacity_gwh` kam deshalb immer als `null`
+    # zurueck, obwohl der letzte gemessene Tag 8895 GWh ausweist.
+    capacity = next(
+        (
+            e["speicherstandBei100ProzentInGWh"]
+            for e in reversed(entries)
+            if e.get("speicherstandBei100ProzentInGWh") is not None
+        ),
+        None,
+    )
     response = StorageLakesResponse(
         source=ATTRIBUTION_BFE,
         provenance=prov,

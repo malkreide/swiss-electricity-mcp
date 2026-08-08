@@ -1,0 +1,323 @@
+{
+  "head": {
+    "vars": [
+      "period",
+      "categoryCode",
+      "productLabel",
+      "operator",
+      "operatorLabel",
+      "total",
+      "energy",
+      "gridusage",
+      "charge",
+      "aidfee",
+      "energyName",
+      "gridusageName",
+      "munLabel"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C1"
+        },
+        "productLabel": {
+          "type": "literal",
+          "value": "cheapest"
+        },
+        "operator": {
+          "type": "uri",
+          "value": "https://energy.ld.admin.ch/elcom/electricityprice/operator/565"
+        },
+        "operatorLabel": {
+          "type": "literal",
+          "value": "Elektrizitätswerk der Stadt Zürich"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "25.830"
+        },
+        "energy": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "8.567"
+        },
+        "gridusage": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "11.929"
+        },
+        "charge": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.000"
+        },
+        "aidfee": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.300"
+        },
+        "energyName": {
+          "type": "literal",
+          "value": "Tarif Energie ewz.econatur"
+        },
+        "gridusageName": {
+          "type": "literal",
+          "value": "Tarif Netznutzung NNA"
+        },
+        "munLabel": {
+          "type": "literal",
+          "value": "Zürich"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C1"
+        },
+        "productLabel": {
+          "type": "literal",
+          "value": "standard"
+        },
+        "operator": {
+          "type": "uri",
+          "value": "https://energy.ld.admin.ch/elcom/electricityprice/operator/565"
+        },
+        "operatorLabel": {
+          "type": "literal",
+          "value": "Elektrizitätswerk der Stadt Zürich"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "26.030"
+        },
+        "energy": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "8.767"
+        },
+        "gridusage": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "11.929"
+        },
+        "charge": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.000"
+        },
+        "aidfee": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.300"
+        },
+        "energyName": {
+          "type": "literal",
+          "value": "Tarif Energie ewz.natur"
+        },
+        "gridusageName": {
+          "type": "literal",
+          "value": "Tarif Netznutzung NNA"
+        },
+        "munLabel": {
+          "type": "literal",
+          "value": "Zürich"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C2"
+        },
+        "productLabel": {
+          "type": "literal",
+          "value": "standard"
+        },
+        "operator": {
+          "type": "uri",
+          "value": "https://energy.ld.admin.ch/elcom/electricityprice/operator/565"
+        },
+        "operatorLabel": {
+          "type": "literal",
+          "value": "Elektrizitätswerk der Stadt Zürich"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "25.108"
+        },
+        "energy": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "8.697"
+        },
+        "gridusage": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "11.835"
+        },
+        "charge": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.000"
+        },
+        "aidfee": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.300"
+        },
+        "energyName": {
+          "type": "literal",
+          "value": "Tarif Energie ewz.natur"
+        },
+        "gridusageName": {
+          "type": "literal",
+          "value": "Tarif Netznutzung NNA"
+        },
+        "munLabel": {
+          "type": "literal",
+          "value": "Zürich"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C2"
+        },
+        "productLabel": {
+          "type": "literal",
+          "value": "cheapest"
+        },
+        "operator": {
+          "type": "uri",
+          "value": "https://energy.ld.admin.ch/elcom/electricityprice/operator/565"
+        },
+        "operatorLabel": {
+          "type": "literal",
+          "value": "Elektrizitätswerk der Stadt Zürich"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "24.908"
+        },
+        "energy": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "8.497"
+        },
+        "gridusage": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "11.835"
+        },
+        "charge": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.000"
+        },
+        "aidfee": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.300"
+        },
+        "energyName": {
+          "type": "literal",
+          "value": "Tarif Energie ewz.econatur"
+        },
+        "gridusageName": {
+          "type": "literal",
+          "value": "Tarif Netznutzung NNA"
+        },
+        "munLabel": {
+          "type": "literal",
+          "value": "Zürich"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C3"
+        },
+        "productLabel": {
+          "type": "literal",
+          "value": "standard"
+        },
+        "operator": {
+          "type": "uri",
+          "value": "https://energy.ld.admin.ch/elcom/electricityprice/operator/565"
+        },
+        "operatorLabel": {
+          "type": "literal",
+          "value": "Elektrizitätswerk der Stadt Zürich"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "25.307"
+        },
+        "energy": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "8.787"
+        },
+        "gridusage": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "12.165"
+        },
+        "charge": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.000"
+        },
+        "aidfee": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "2.300"
+        },
+        "energyName": {
+          "type": "literal",
+          "value": "Tarif Energie ewz.natur"
+        },
+        "gridusageName": {
+          "type": "literal",
+          "value": "Tarif Netznutzung NNB"
+        },
+        "munLabel": {
+          "type": "literal",
+          "value": "Zürich"
+        }
+      }
+    ]
+  }
+}

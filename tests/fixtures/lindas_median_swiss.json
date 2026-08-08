@@ -1,0 +1,93 @@
+{
+  "head": {
+    "vars": [
+      "period",
+      "categoryCode",
+      "total"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C1"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "25.6475"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C1"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "26.28"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C2"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "24.446"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C2"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "25.108"
+        }
+      },
+      {
+        "period": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2026"
+        },
+        "categoryCode": {
+          "type": "literal",
+          "value": "C3"
+        },
+        "total": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+          "type": "literal",
+          "value": "24.727"
+        }
+      }
+    ]
+  }
+}

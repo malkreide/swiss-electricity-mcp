@@ -83,6 +83,16 @@ pytest -m "not live" -q
 python scripts/check_version_sync.py
 ```
 
+Alle vier laufen in **einem** Job (`lint-and-test`), auf allen drei Versionen.
+Kein separater lint-Job, keine `if: matrix.python-version`-Ausnahme — ein
+grünes 3.13 heisst hier wirklich, dass alles auf 3.13 lief. (Nicht überall im
+Portfolio so: `swiss-food-safety-mcp` gated zwei Gates auf 3.11.)
+
+Die Matrix hat `fail-fast: false`. Eine rote 3.11 stoppt 3.12 und 3.13 also
+nicht, und genau das ist beim Einordnen der Unterschied zwischen
+«versionsabhängig» und «überall kaputt». Mit dem Standard `fail-fast: true`
+stünden die anderen beiden auf `cancelled` und sagten nichts.
+
 Dazu läuft auf jedem PR `secret-scan.yml` (Gitleaks, voller History-Scan).
 
 **Live-Tests:** `.github/workflows/live-tests.yml` hat einen echten

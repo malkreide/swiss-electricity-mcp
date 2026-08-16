@@ -29,6 +29,14 @@ damit nichts zu tun. Verglichen wird nur, was existiert: Ein Repo ohne
 pre-commit-Konfiguration ist kein Fehler, ein Repo mit zwei ungleichen Pins
 schon.
 
+Die Angabe in `pyproject.toml` ist dabei Pflicht, ihr Fehlen ein Fehler. Der
+blosse Gleichstand genügt nicht: Verschwindet die Zeile, bleibt die
+pre-commit-`rev` als einzige Stelle übrig, und «eine Stelle, einig» ist ein
+Zustand, den dieser Check von einem Repo mit nur einem Fundort nicht
+unterscheiden könnte. `pip install -e ".[dev]"` holt dann die jeweils neueste
+Version, der Hook formatiert weiter nach seiner festen — und der Vergleich,
+der das melden sollte, bleibt grün, weil er nichts mehr zu vergleichen hat.
+
 Ein **eigener** ruff-Install in einem Workflow ist dagegen immer ein Fehler,
 unabhängig von seiner Version: Er läuft nach dem Install des dev-Extras und
 überschreibt ihn. Eine Abweichung im deklarierten Pin fiele damit in der CI
@@ -336,10 +344,22 @@ def main() -> None:
         )
         sys.exit(1)
 
+    deklariert, loose = ruff_specs(ROOT)
     pins = ruff_pins(ROOT)
-    loose = ruff_specs(ROOT)[1]
     eigenmaechtig = ruff_in_workflows(ROOT)
     problems = False
+
+    if not deklariert and not loose:
+        problems = True
+        print("KEIN PIN: pyproject.toml nennt ruff nicht.", file=sys.stderr)
+        print(
+            "\n`ruff==X.Y.Z` gehört ins dev-Extra. Ohne die Zeile holt "
+            '`pip install -e ".[dev]"` gar kein ruff oder das jeweils neueste, '
+            "während der Hook nach seiner festen `rev` formatiert. Der Abgleich "
+            "unten bliebe dabei grün: Er sähe nur noch eine Stelle und hätte "
+            "damit nichts mehr zu vergleichen.",
+            file=sys.stderr,
+        )
 
     if eigenmaechtig:
         problems = True

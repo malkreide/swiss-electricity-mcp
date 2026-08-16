@@ -7,7 +7,7 @@ Workflow ist keine dritte Stelle mehr, sondern ein Befund — er laeuft nach dem
 Install und ueberschreibt das dev-Extra, sodass eine Abweichung dort in der CI
 gar nicht auffiele.
 
-Ein Check, der das prueft, hat fuenf Wege, still falsch zu liegen, und jeder
+Ein Check, der das prueft, hat sechs Wege, still falsch zu liegen, und jeder
 davon hat hier einen Test:
 
   - Er liest einen Kommentar als Fundort. Alle drei Dateien erklaeren ihren
@@ -20,6 +20,10 @@ davon hat hier einen Test:
   - Er uebersieht einen wieder eingefuegten CI-Pin. Der Gleichstand der beiden
     verbleibenden Stellen bliebe dabei gruen, und die CI liefe trotzdem auf
     einer anderen Version — deshalb wird sein Fehlen eigens geprueft.
+  - Er laesst eine verschwundene ruff-Zeile in pyproject durchgehen. Ein
+    Gleichstands-Vergleich wird gerade dann gruen, wenn ihm eine Seite
+    abhandenkommt: Was uebrig bleibt, stimmt zwangslaeufig mit sich selbst
+    ueberein.
 
 Nur Standardbibliothek, kein Netz.
 """
@@ -73,6 +77,24 @@ version = "1.0.0"
 dev = [
     "pytest>=8.0.0",
     "ruff{spec}",
+]
+
+[tool.ruff]
+line-length = 100
+"""
+
+
+# Dasselbe Repo, aber ohne jede ruff-Abhaengigkeit — `[tool.ruff]` bleibt
+# absichtlich stehen: Ein Repo, das ruff konfiguriert und im Gate aufruft, es
+# aber nicht mehr deklariert, ist genau der Fall, der still durchrutscht.
+PYPROJECT_OHNE_RUFF = """\
+[project]
+name = "demo"
+version = "1.0.0"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
 ]
 
 [tool.ruff]
@@ -353,6 +375,49 @@ class MainTest(unittest.TestCase):
             code, text = self.run_main(path)
         self.assertEqual(code, 0)
         self.assertIn("nur an einer Stelle", text)
+
+    def test_fehlende_ruff_angabe_ist_rot(self):
+        """Die Gegenprobe zum Gleichstands-Vergleich.
+
+        Die pre-commit-`rev` bleibt als einzige Stelle stehen und stimmt damit
+        zwangslaeufig mit sich selbst ueberein — der DRIFT-Vergleich sieht
+        nichts, und die LOSE-Pruefung auch nicht, denn es gibt keinen Spec, der
+        lose sein koennte. Rot wird es nur, weil das Fehlen der Deklaration
+        eigens geprueft wird.
+        """
+        with root(
+            workflow=WORKFLOW_OHNE_PIN,
+            precommit=PRECOMMIT.format(version="0.16.1"),
+            pyproject=PYPROJECT_OHNE_RUFF,
+        ) as path:
+            code, text = self.run_main(path)
+        self.assertEqual(code, 1)
+        self.assertIn("KEIN PIN", text)
+        self.assertNotIn("DRIFT", text)
+        self.assertNotIn("LOSE", text)
+
+    def test_fehlende_ruff_angabe_auch_ohne_pre_commit_rot(self):
+        """Ohne Hook-Datei bleibt gar keine Stelle uebrig — erst recht rot."""
+        with root(workflow=WORKFLOW_OHNE_PIN, pyproject=PYPROJECT_OHNE_RUFF) as path:
+            code, text = self.run_main(path)
+        self.assertEqual(code, 1)
+        self.assertIn("KEIN PIN", text)
+
+    def test_loser_spec_meldet_nicht_zusaetzlich_kein_pin(self):
+        """`ruff>=0.4.0` ist deklariert, nur eben nicht exakt.
+
+        Ohne diese Abgrenzung liesse sich die neue Zusicherung auch so
+        schreiben, dass sie auf jede nicht-exakte Angabe anspringt — dann
+        stuenden bei einem offenen Bereich zwei Befunde fuer einen Fehler.
+        """
+        with root(
+            workflow=WORKFLOW_OHNE_PIN,
+            pyproject=PYPROJECT.format(spec=">=0.4.0"),
+        ) as path:
+            code, text = self.run_main(path)
+        self.assertEqual(code, 1)
+        self.assertIn("LOSE", text)
+        self.assertNotIn("KEIN PIN", text)
 
 
 if __name__ == "__main__":

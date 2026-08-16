@@ -49,8 +49,9 @@ Ein Codex-Review auf einem PR wird beantwortet oder behoben, nie ignoriert.
 **ruff:** `0.16.1`, an zwei Stellen gepinnt — `.github/workflows/test.yml`
 (Schritt «Install pinned ruff») und `.pre-commit-config.yaml` (`rev: v0.16.1`).
 Beide müssen dieselbe Version nennen; wer eine hochzieht, zieht die andere im
-selben Commit mit. Weichen sie ab, ist **das** der erste Befund, bevor
-irgendein Lint-Ergebnis gedeutet wird.
+selben Commit mit. `scripts/check_version_sync.py` vergleicht sie und wird rot,
+wenn sie abweichen — der Befund kommt also aus dem Gate, nicht erst aus einem
+verwirrenden Lint-Ergebnis.
 
 `pip install -e ".[dev]"` installiert nach `ruff>=0.4.0` (pyproject) irgendeine
 neuere Version. Wer ohne pre-commit arbeitet, installiert `ruff==0.16.1`

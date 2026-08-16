@@ -46,11 +46,16 @@ Ein Codex-Review auf einem PR wird beantwortet oder behoben, nie ignoriert.
 
 ## Dieses Repo
 
-**ruff:** Die CI pinnt `ruff==0.16.1` (`.github/workflows/test.yml`, Schritt
-«Install pinned ruff»). Ein `.pre-commit-config.yaml` gibt es nicht — der Pin
-existiert also **nur** in der CI. `pip install -e ".[dev]"` installiert nach
-`ruff>=0.4.0` (pyproject) irgendeine neuere Version. Vor den Gates deshalb
-immer explizit `pip install ruff==0.16.1`.
+**ruff:** `0.16.1`, an zwei Stellen gepinnt — `.github/workflows/test.yml`
+(Schritt «Install pinned ruff») und `.pre-commit-config.yaml` (`rev: v0.16.1`).
+Beide müssen dieselbe Version nennen; wer eine hochzieht, zieht die andere im
+selben Commit mit. Weichen sie ab, ist **das** der erste Befund, bevor
+irgendein Lint-Ergebnis gedeutet wird.
+
+`pip install -e ".[dev]"` installiert nach `ruff>=0.4.0` (pyproject) irgendeine
+neuere Version. Wer ohne pre-commit arbeitet, installiert `ruff==0.16.1`
+explizit — und prüft `ruff --version`: Ein ruff in `~/.local/bin` beschattet
+die gepinnte Version im PATH, ohne dass der `pip install` etwas meldet.
 
 **Gates, wörtlich aus `test.yml`** (Matrix: Python 3.11 / 3.12 / 3.13):
 

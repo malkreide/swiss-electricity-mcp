@@ -39,10 +39,15 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "respx>=0.21.0",
-    # Exakt gepinnt, identisch zu .github/workflows/test.yml und
-    # .pre-commit-config.yaml. Eine andere Version meldet Abweichungen, die
-    # niemand verursacht hat. Alle drei Stellen zusammen bumpen —
-    # scripts/check_version_sync.py wird rot, wenn eine zurueckbleibt.
+    # Exakt gepinnt, nicht `>=`: ruff ist ein Gate, kein Hilfsmittel. Eine
+    # andere Version meldet Abweichungen an Code, den niemand angefasst hat.
+    #
+    # Diese Zeile ist die Quelle. `.pre-commit-config.yaml` traegt dieselbe
+    # Zahl ein zweites Mal, weil pre-commit pyproject.toml nicht lesen kann —
+    # beide zusammen bumpen. Die Workflows pinnen NICHT selbst: Ein solcher
+    # Schritt liefe nach dem Install und wuerde diese Zeile ueberschreiben.
+    # scripts/check_version_sync.py prueft beides: Gleichstand der zwei
+    # Stellen und Abwesenheit eines eigenen CI-Pins.
     "ruff==0.16.1",
 ]
 otel = [

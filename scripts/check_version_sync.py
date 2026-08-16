@@ -19,13 +19,21 @@ kommt aus den Paket-Metadaten (`importlib.metadata.version()`); ein wieder
 eingefügtes Literal wäre der Beginn derselben Drift, die im ganzen Portfolio
 falsche User-Agents erzeugt hat.
 
-Dritter Teil: der ruff-Pin steht an zwei Stellen — `ruff==X.Y.Z` in den
-Workflows und `rev: vX.Y.Z` beim `ruff-pre-commit`-Repo. Laufen sie
-auseinander, meldet lokal und in der CI je eine andere ruff-Version
-Abweichungen, die niemand verursacht hat, und der Diff, in dem es auffällt,
-hat damit nichts zu tun. Verglichen wird nur, was existiert: Ein Repo ohne
+Dritter Teil: der ruff-Pin. Er steht in `pyproject.toml` (`ruff==X.Y.Z` im
+dev-Extra) und, falls vorhanden, als `rev: vX.Y.Z` beim `ruff-pre-commit`-Repo
+— pre-commit kann `pyproject.toml` nicht lesen und braucht die Zahl deshalb
+ein zweites Mal. Laufen sie auseinander, formatiert der Hook nach der einen
+und das Gate prüft nach der anderen Version; die Abweichungen, die dabei
+auftauchen, hat niemand verursacht, und der Diff, in dem es auffällt, hat
+damit nichts zu tun. Verglichen wird nur, was existiert: Ein Repo ohne
 pre-commit-Konfiguration ist kein Fehler, ein Repo mit zwei ungleichen Pins
 schon.
+
+Ein **eigener** ruff-Install in einem Workflow ist dagegen immer ein Fehler,
+unabhängig von seiner Version: Er läuft nach dem Install des dev-Extras und
+überschreibt ihn. Eine Abweichung im deklarierten Pin fiele damit in der CI
+gar nicht auf, sondern nur lokal — und der Gleichstand der übrigen Stellen
+bliebe dabei grün. Deshalb wird sein Fehlen geprüft, nicht seine Version.
 
 Verwendung:
     python scripts/check_version_sync.py     # exit 1 bei Abweichung
@@ -230,14 +238,6 @@ def ruff_pins(root: Path) -> list[tuple[str, str]]:
     """Alle exakten ruff-Pins — je (Bezeichnung, Version), ohne führendes `v`."""
     found: list[tuple[str, str]] = []
 
-    workflows = root / ".github" / "workflows"
-    if workflows.is_dir():
-        for path in sorted(workflows.glob("*.y*ml")):
-            text = strip_comments(path.read_text(encoding="utf-8"))
-            for m in _RUFF_CI.finditer(text):
-                rel = path.relative_to(root)
-                found.append((f"{rel.as_posix()} → ruff==", m.group(1)))
-
     config = root / ".pre-commit-config.yaml"
     if config.exists():
         text = strip_comments(config.read_text(encoding="utf-8"))
@@ -251,6 +251,25 @@ def ruff_pins(root: Path) -> list[tuple[str, str]]:
                 found.append((".pre-commit-config.yaml → rev", m.group(1)))
 
     found.extend(ruff_specs(root)[0])
+    return found
+
+
+def ruff_in_workflows(root: Path) -> list[tuple[str, str]]:
+    """Eigene ruff-Pins in den Workflows — hier soll keiner mehr stehen.
+
+    Ein solcher Schritt laeuft nach dem Install des dev-Extras und ueberschreibt
+    ihn. Eine Abweichung im deklarierten Pin faellt dann in der CI gar nicht
+    auf, sondern nur lokal — und der Gleichstand der uebrigen Stellen bliebe
+    dabei gruen. Deshalb wird sein *Fehlen* geprueft, nicht seine Version.
+    """
+    found: list[tuple[str, str]] = []
+    workflows = root / ".github" / "workflows"
+    if not workflows.is_dir():
+        return found
+    for path in sorted(workflows.glob("*.y*ml")):
+        text = strip_comments(path.read_text(encoding="utf-8"))
+        for m in _RUFF_CI.finditer(text):
+            found.append((path.relative_to(root).as_posix(), m.group(1)))
     return found
 
 
@@ -319,7 +338,21 @@ def main() -> None:
 
     pins = ruff_pins(ROOT)
     loose = ruff_specs(ROOT)[1]
+    eigenmaechtig = ruff_in_workflows(ROOT)
     problems = False
+
+    if eigenmaechtig:
+        problems = True
+        print("EIGENER CI-PIN: ein Workflow installiert ruff selbst:", file=sys.stderr)
+        for where, value in eigenmaechtig:
+            print(f"  {where} = {value!r}", file=sys.stderr)
+        print(
+            "\nDer Schritt laeuft nach dem Install des dev-Extras und "
+            "ueberschreibt ihn: Eine Abweichung im deklarierten Pin faellt dann "
+            "in der CI gar nicht auf, sondern nur lokal. Den Schritt entfernen "
+            "— ruff kommt aus dem dev-Extra.",
+            file=sys.stderr,
+        )
 
     if len({value for _, value in pins}) > 1:
         problems = True

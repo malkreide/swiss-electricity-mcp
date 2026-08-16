@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Tests fuer den ruff-Pin-Abgleich in scripts/check_version_sync.py.
 
-Der Pin steht an drei Stellen: dev-Extra in pyproject, `ruff==` im Workflow und
-`rev:` beim ruff-pre-commit-Hook. Ein Check, der die vergleicht, hat vier Wege,
-still falsch zu liegen, und jeder davon hat hier einen Test:
+Der Pin steht an zwei Stellen: dem dev-Extra in pyproject und `rev:` beim
+ruff-pre-commit-Hook (pre-commit kann pyproject nicht lesen). Ein `ruff==` im
+Workflow ist keine dritte Stelle mehr, sondern ein Befund — er laeuft nach dem
+Install und ueberschreibt das dev-Extra, sodass eine Abweichung dort in der CI
+gar nicht auffiele.
+
+Ein Check, der das prueft, hat fuenf Wege, still falsch zu liegen, und jeder
+davon hat hier einen Test:
 
   - Er liest einen Kommentar als Fundort. Alle drei Dateien erklaeren ihren
     Pin im Fliesstext, teils woertlich mit «ruff==0.16.1».
@@ -12,6 +17,9 @@ still falsch zu liegen, und jeder davon hat hier einen Test:
   - Er haelt `[tool.ruff]` oder `ruff-lsp` fuer eine ruff-Abhaengigkeit.
   - Er meldet «OK», wo er gar nichts verglichen hat — weil nur eine der
     Stellen existiert.
+  - Er uebersieht einen wieder eingefuegten CI-Pin. Der Gleichstand der beiden
+    verbleibenden Stellen bliebe dabei gruen, und die CI liefe trotzdem auf
+    einer anderen Version — deshalb wird sein Fehlen eigens geprueft.
 
 Nur Standardbibliothek, kein Netz.
 """
@@ -28,6 +36,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 import check_version_sync as cvs  # noqa: E402
+
+WORKFLOW_OHNE_PIN = """\
+name: test
+jobs:
+  lint:
+    steps:
+      - run: pip install -e ".[dev]"
+      - run: ruff check src/
+"""
 
 WORKFLOW = """\
 name: test
@@ -97,7 +114,7 @@ class RuffPinTest(unittest.TestCase):
 
     def test_beide_stellen_gefunden(self):
         got = self.versions(
-            workflow=WORKFLOW.format(version="0.16.1"),
+            pyproject=PYPROJECT.format(spec="==0.16.1"),
             precommit=PRECOMMIT.format(version="0.16.1"),
         )
         self.assertEqual(got, ["0.16.1", "0.16.1"])
@@ -113,16 +130,25 @@ class RuffPinTest(unittest.TestCase):
 
     def test_abweichende_pins_bleiben_unterscheidbar(self):
         got = self.versions(
-            workflow=WORKFLOW.format(version="0.16.1"),
+            pyproject=PYPROJECT.format(spec="==0.16.1"),
             precommit=PRECOMMIT.format(version="0.15.8"),
         )
         self.assertEqual(sorted(got), ["0.15.8", "0.16.1"])
 
+    def test_workflow_ist_keine_pin_quelle_mehr(self):
+        """Ein `ruff==` im Workflow zaehlt nicht als Stelle, an der der Pin steht.
+
+        Zaehlte er mit, waere er im Gleichstands-Vergleich unsichtbar: Er
+        stimmte ja mit den uebrigen ueberein — waehrend er sie in der CI
+        gerade ueberschreibt.
+        """
+        self.assertEqual(self.versions(workflow=WORKFLOW.format(version="0.16.1")), [])
+
     def test_kommentar_im_workflow_ist_kein_fundort(self):
-        got = self.versions(
-            workflow="# historisch: ruff==0.9.9\n" + WORKFLOW.format(version="0.16.1"),
-        )
-        self.assertEqual(got, ["0.16.1"])
+        with root(
+            workflow="# historisch: ruff==0.9.9\n" + WORKFLOW_OHNE_PIN,
+        ) as path:
+            self.assertEqual(cvs.ruff_in_workflows(path), [])
 
     def test_auskommentiertes_rev_gilt_nicht(self):
         """Ein stehengelassenes `# rev:` steht vor dem echten und darf nicht gewinnen.
@@ -152,7 +178,7 @@ class RuffPinTest(unittest.TestCase):
         self.assertEqual(got, ["0.16.1"])
 
     def test_ohne_pre_commit_datei_nur_ein_pin(self):
-        got = self.versions(workflow=WORKFLOW.format(version="0.16.1"))
+        got = self.versions(pyproject=PYPROJECT.format(spec="==0.16.1"))
         self.assertEqual(got, ["0.16.1"])
 
     def test_ohne_beide_dateien_kein_pin(self):
@@ -167,7 +193,7 @@ class RuffPinTest(unittest.TestCase):
         """
         text = 'run: echo "a # b" && pip install ruff==0.16.1\n'
         with root(workflow=text) as path:
-            self.assertEqual([v for _, v in cvs.ruff_pins(path)], ["0.16.1"])
+            self.assertEqual([v for _, v in cvs.ruff_in_workflows(path)], ["0.16.1"])
 
 
 class PyprojectSpecTest(unittest.TestCase):
@@ -230,7 +256,7 @@ class PyprojectSpecTest(unittest.TestCase):
 
     def test_pyproject_pin_zaehlt_beim_abgleich_mit(self):
         got = self.versions_all(
-            workflow=WORKFLOW.format(version="0.16.1"),
+            precommit=PRECOMMIT.format(version="0.16.1"),
             pyproject=PYPROJECT.format(spec="==0.15.8"),
         )
         self.assertEqual(sorted(got), ["0.15.8", "0.16.1"])
@@ -265,7 +291,7 @@ class MainTest(unittest.TestCase):
 
     def test_abweichende_pins_sind_rot(self):
         with root(
-            workflow=WORKFLOW.format(version="0.16.1"),
+            pyproject=PYPROJECT.format(spec="==0.16.1"),
             precommit=PRECOMMIT.format(version="0.15.8"),
         ) as path:
             code, text = self.run_main(path)
@@ -275,7 +301,7 @@ class MainTest(unittest.TestCase):
 
     def test_gleiche_pins_sind_gruen(self):
         with root(
-            workflow=WORKFLOW.format(version="0.16.1"),
+            pyproject=PYPROJECT.format(spec="==0.16.1"),
             precommit=PRECOMMIT.format(version="0.16.1"),
         ) as path:
             code, text = self.run_main(path)
@@ -284,7 +310,7 @@ class MainTest(unittest.TestCase):
 
     def test_loser_spec_ist_rot(self):
         with root(
-            workflow=WORKFLOW.format(version="0.16.1"),
+            workflow=WORKFLOW_OHNE_PIN,
             pyproject=PYPROJECT.format(spec=">=0.4.0"),
         ) as path:
             code, text = self.run_main(path)
@@ -293,12 +319,29 @@ class MainTest(unittest.TestCase):
 
     def test_exakter_pin_im_pyproject_ist_gruen(self):
         with root(
-            workflow=WORKFLOW.format(version="0.16.1"),
+            workflow=WORKFLOW_OHNE_PIN,
+            precommit=PRECOMMIT.format(version="0.16.1"),
             pyproject=PYPROJECT.format(spec="==0.16.1"),
         ) as path:
             code, text = self.run_main(path)
         self.assertEqual(code, 0)
         self.assertIn("2 Stellen", text)
+
+    def test_eigener_ci_pin_ist_rot(self):
+        """Die Gegenprobe zur Konsolidierung.
+
+        Beide verbleibenden Stellen stimmen ueberein — der Gleichstands-Test
+        allein bliebe also gruen. Rot wird es nur, weil das Fehlen des
+        CI-Pins eigens geprueft wird.
+        """
+        with root(
+            workflow=WORKFLOW.format(version="0.16.1"),
+            precommit=PRECOMMIT.format(version="0.16.1"),
+            pyproject=PYPROJECT.format(spec="==0.16.1"),
+        ) as path:
+            code, text = self.run_main(path)
+        self.assertEqual(code, 1)
+        self.assertIn("EIGENER CI-PIN", text)
 
     def test_einzelner_pin_wird_nicht_als_vergleich_ausgegeben(self):
         """Gruen, aber sichtbar ohne Gegenstueck.
@@ -306,7 +349,7 @@ class MainTest(unittest.TestCase):
         Ein blosses «OK» laese sich hier als bestandener Abgleich lesen, und
         genau der hat nicht stattgefunden.
         """
-        with root(workflow=WORKFLOW.format(version="0.16.1")) as path:
+        with root(pyproject=PYPROJECT.format(spec="==0.16.1")) as path:
             code, text = self.run_main(path)
         self.assertEqual(code, 0)
         self.assertIn("nur an einer Stelle", text)

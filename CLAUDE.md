@@ -46,12 +46,17 @@ Ein Codex-Review auf einem PR wird beantwortet oder behoben, nie ignoriert.
 
 ## Dieses Repo
 
-**ruff:** `0.16.1`, an drei Stellen gepinnt — `pyproject.toml` (dev-Extra),
-`.github/workflows/test.yml` (Schritt «Install pinned ruff») und
-`.pre-commit-config.yaml` (`rev: v0.16.1`). Alle drei im selben Commit bumpen.
-`scripts/check_version_sync.py` vergleicht sie und wird rot, wenn eine
-abweicht **oder** wenn eine nicht exakt pinnt (`>=` statt `==`) — der Befund
-kommt aus dem Gate, nicht erst aus einem verwirrenden Lint-Ergebnis.
+**ruff: eine Quelle, plus der Hook.** Der Pin `0.16.1` steht im dev-Extra von
+`pyproject.toml`. `.pre-commit-config.yaml` trägt dieselbe Zahl ein zweites Mal
+(`rev: v0.16.1`), weil pre-commit `pyproject.toml` nicht lesen kann — beide
+zusammen bumpen. Die Workflows pinnen **nicht** selbst.
+
+`scripts/check_version_sync.py` erzwingt beides: Gleichstand der zwei Stellen
+und Abwesenheit eines eigenen CI-Pins. Nur der Gleichstand wäre zu schwach —
+ein wieder eingefügter Install-Schritt in einem Workflow liefe nach dem
+dev-Extra und überschriebe es, ohne dass sich eine der beiden Zahlen ändert.
+Der Vergleich bliebe grün, und in der CI liefe trotzdem eine andere Version.
+Der Guard meldet ausserdem, wenn `pyproject.toml` lose statt exakt pinnt.
 
 `ruff --version` trotzdem prüfen: Ein ruff in `~/.local/bin` beschattet die
 gepinnte Version im PATH, ohne dass der `pip install` etwas meldet.

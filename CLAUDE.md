@@ -46,14 +46,20 @@ Ein Codex-Review auf einem PR wird beantwortet oder behoben, nie ignoriert.
 
 ## Dieses Repo
 
-**ruff: eine Quelle.** Der Pin `0.16.1` steht in `pyproject.toml` — und
-**nicht** mehr als eigener Install-Schritt in der CI.
+**ruff: eine Quelle, plus der Hook.** Der Pin `0.16.1` steht im dev-Extra von
+`pyproject.toml`. `.pre-commit-config.yaml` trägt dieselbe Zahl ein zweites Mal
+(`rev: v0.16.1`), weil pre-commit `pyproject.toml` nicht lesen kann — beide
+zusammen bumpen. Die Workflows pinnen **nicht** selbst.
 
-Der CI-Schritt lief nach dem Install der Abhängigkeiten und überschrieb sie.
-Eine Abweichung im Pin konnte deshalb in der CI gar nicht auffallen, sondern
-nur lokal — wo niemand sie erwartet. Ein manuelles Nachinstallieren von ruff
-vor den Gates ist damit nicht mehr nötig und wäre schädlich: Es würde eine
-spätere Anhebung hier stillschweigend überstimmen.
+`scripts/check_version_sync.py` erzwingt beides: Gleichstand der zwei Stellen
+und Abwesenheit eines eigenen CI-Pins. Nur der Gleichstand wäre zu schwach —
+ein wieder eingefügter Install-Schritt in einem Workflow liefe nach dem
+dev-Extra und überschriebe es, ohne dass sich eine der beiden Zahlen ändert.
+Der Vergleich bliebe grün, und in der CI liefe trotzdem eine andere Version.
+Der Guard meldet ausserdem, wenn `pyproject.toml` lose statt exakt pinnt.
+
+`ruff --version` trotzdem prüfen: Ein ruff in `~/.local/bin` beschattet die
+gepinnte Version im PATH, ohne dass der `pip install` etwas meldet.
 
 **Gates, wörtlich aus `test.yml`** (Matrix: Python 3.11 / 3.12 / 3.13):
 

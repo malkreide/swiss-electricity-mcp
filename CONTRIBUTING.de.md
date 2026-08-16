@@ -42,8 +42,20 @@ PYTHONPATH=src pytest tests/ -m live -v
 
 ## Lint
 
+Die Hooks einmal einrichten. Sie pinnen dieselbe ruff-Version wie die CI, ein
+lokaler Lauf und die CI können also nicht auseinanderlaufen:
+
 ```bash
-ruff check src tests
+pre-commit install
+```
+
+Wer die Gates von Hand fährt, installiert die gepinnte Version explizit —
+`pip install -e ".[dev]"` löst `ruff>=0.4.0` auf die jeweils neueste auf:
+
+```bash
+pip install ruff==0.16.1
+ruff check src/ tests/ scripts/
+ruff format --check src/ tests/ scripts/
 ```
 
 ## Ein Tool hinzufügen

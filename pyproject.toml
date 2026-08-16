@@ -39,7 +39,11 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "respx>=0.21.0",
-    "ruff>=0.4.0",
+    # Exakt gepinnt, identisch zu .github/workflows/test.yml und
+    # .pre-commit-config.yaml. Eine andere Version meldet Abweichungen, die
+    # niemand verursacht hat. Alle drei Stellen zusammen bumpen —
+    # scripts/check_version_sync.py wird rot, wenn eine zurueckbleibt.
+    "ruff==0.16.1",
 ]
 otel = [
     "opentelemetry-sdk>=1.25.0",

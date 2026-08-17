@@ -22,6 +22,7 @@ Nur Standardbibliothek, kein Netz, keine fremden Repos.
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -77,6 +78,107 @@ class ErkennungTest(unittest.TestCase):
         pfad.parent.mkdir(parents=True, exist_ok=True)
         pfad.write_text('open(".pre-commit-config.yaml")\n', encoding="utf-8")
         self.assertEqual(pa.waechter_dateien(self.root), [])
+
+
+class PinLeserTest(unittest.TestCase):
+    """Der Pin aus pyproject.toml — eigenstaendig, weil das Werkzeug wandert.
+
+    Vorher stand hier `from check_version_sync import ruff_specs`. Die Funktion
+    gibt es im Portfolio nur in vier von zweiundvierzig Servern; jede Kopie in
+    einem der uebrigen waere schon beim Import umgefallen, ohne je zu messen.
+    """
+
+    VORLAGE = '[project]\nname = "demo"\nversion = "1.0.0"\n\n[project.optional-dependencies]\ndev = [\n{}]\n'
+
+    def pin(self, *eintraege: str) -> str | None:
+        # `json.dumps` statt f'"{e}"': Ein Eintrag mit Anfuehrungszeichen —
+        # etwa ein Umgebungsmarker — sprengte sonst das TOML-Array, und der
+        # Test bestuende ueber den Parserfehler statt ueber die Abgrenzung.
+        # Genau so war es, aufgedeckt von der Gegenprobe.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            zeilen = "".join(f"    {json.dumps(e)},\n" for e in eintraege)
+            (root / "pyproject.toml").write_text(self.VORLAGE.format(zeilen), encoding="utf-8")
+            return pa.pin_aus_pyproject(root)
+
+    def test_die_vorlage_erzeugt_gueltiges_toml(self):
+        """Die Gegenprobe zur Vorlage selbst.
+
+        Erzeugt sie kaputtes TOML, liefert `pin_aus_pyproject` `None` — und
+        jeder Test, der `None` erwartet, ist gruen, ohne je etwas geprueft zu
+        haben. Deshalb hier einmal ausdruecklich: die Vorlage muss parsen, auch
+        mit Anfuehrungszeichen im Eintrag.
+        """
+        self.assertEqual(
+            self.pin('ruff==0.16.1 ; sys_platform == "linux"', "ruff==0.16.1"), "0.16.1"
+        )
+
+    def test_exakter_pin_wird_gelesen(self):
+        self.assertEqual(self.pin("pytest>=8.0", "ruff==0.16.1"), "0.16.1")
+
+    def test_ruff_lsp_ist_kein_ruff_pin(self):
+        """Die Verwechslung, die im Portfolio zweimal danebenging.
+
+        `^ruff\\b` traf `ruff-lsp`, weil der Bindestrich eine Wortgrenze ist.
+        Hier haelt das geforderte `==` direkt nach `ruff` den Fall heraus.
+        """
+        self.assertIsNone(self.pin("ruff-lsp==0.0.1"))
+        self.assertEqual(self.pin("ruff-lsp==0.0.1", "ruff==0.16.1"), "0.16.1")
+
+    def test_name_der_auf_ruff_endet_ist_kein_ruff_pin(self):
+        """Das, was `fullmatch` wirklich leistet — und der Test dazu.
+
+        Der Test darueber belegt es NICHT: Bei `ruff-lsp==0.0.1` scheitern
+        `search` und `fullmatch` gleichermassen am geforderten `==`. Die
+        Gegenprobe hat das aufgedeckt — `fullmatch` durch `search` zu ersetzen
+        liess damals keinen einzigen Test fallen. Hier faende `search` sehr
+        wohl ein `ruff==0.16.1` mitten im Namen.
+        """
+        self.assertIsNone(self.pin("my-ruff==0.16.1"))
+
+    def test_extra_am_namen_bleibt_ein_pin(self):
+        self.assertEqual(self.pin("ruff[extra]==0.16.1"), "0.16.1")
+
+    def test_pin_mit_umgebungsmarker_gilt_nicht_als_pin(self):
+        """Der Preis der Strenge, ausdruecklich festgehalten.
+
+        `ruff==0.16.1 ; sys_platform == "linux"` IST ein Pin, wird hier aber
+        nicht als solcher gelesen. Verkraftbar, weil das Werkzeug den Fall
+        sichtbar als «kein exakter ruff-Pin» meldet und nicht still misst —
+        aber es soll niemand ueberrascht davorstehen.
+        """
+        self.assertIsNone(self.pin('ruff==0.16.1 ; sys_platform == "linux"'))
+
+    def test_loser_spec_ist_kein_pin(self):
+        """`ruff>=0.4.0` ist deklariert, aber nicht exakt — nichts zu messen."""
+        self.assertIsNone(self.pin("ruff>=0.4.0"))
+
+    def test_kommentar_zaehlt_nicht(self):
+        """`tomllib` schneidet Kommentare selbst weg.
+
+        Ein Leser, der den Dateitext per Regex durchsucht, las im Portfolio
+        schon den eigenen Erklaertext als Fundort. Dieser Test haelt fest, dass
+        der Weg ueber den TOML-Parser genau das ausschliesst.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            text = self.VORLAGE.format('    "pytest>=8.0",\n')
+            (root / "pyproject.toml").write_text(
+                text + '\n[tool.ruff]\n# frueher: "ruff==0.15.8"\nline-length = 100\n',
+                encoding="utf-8",
+            )
+            self.assertIsNone(pa.pin_aus_pyproject(root))
+
+    def test_ohne_pyproject_kein_absturz(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(pa.pin_aus_pyproject(Path(tmp)))
+
+    def test_kaputte_pyproject_kein_absturz(self):
+        """Ein Werkzeug ueber 42 Repos darf am ersten defekten Repo nicht enden."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "pyproject.toml").write_text("[project\nname =", encoding="utf-8")
+            self.assertIsNone(pa.pin_aus_pyproject(root))
 
 
 class UrteilTest(unittest.TestCase):

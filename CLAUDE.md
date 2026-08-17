@@ -77,6 +77,7 @@ gepinnte Version im PATH, ohne dass der `pip install` etwas meldet.
 **Gates, wörtlich aus `test.yml`** (Matrix: Python 3.11 / 3.12 / 3.13):
 
 ```bash
+python scripts/check_ruff_pin.py
 ruff check src/ tests/ scripts/
 ruff format --check src/ tests/ scripts/
 pytest -m "not live" -q

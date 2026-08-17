@@ -233,6 +233,23 @@ envelope/attribution invariants, plus **security** (egress allow-list, SPARQL
 escaping, tool-definition lock). CI runs ruff + `pytest -m "not live"` on
 Python 3.11–3.13.
 
+### Auditing the ruff pin across the portfolio
+
+`scripts/pin_audit.py` checks whether a server's own pin guards actually hold.
+It is **not** a CI gate — it needs the sibling repositories on disk — but it is
+worth running whenever a pin convention changes or a new server joins:
+
+```bash
+python scripts/pin_audit.py ../*-mcp
+```
+
+It measures black-box: prepend an ordinary second pre-commit hook with its own
+`rev:`, run the guard, read the exit code, restore the file. Two guards in the
+portfolio used to report that hook's version as the ruff pin, turning CI red
+with a number nobody had written. A positive control (misconfigure the ruff
+hook's own `rev`) separates "correctly scoped" from "never reads the file" —
+without it, a guard that ignores the config looks like a clean bill of health.
+
 ### Where the test data comes from
 
 The fixtures under `tests/fixtures/` are **recorded from the live sources** and

@@ -23,9 +23,10 @@ Exit 1, sobald ein Wächter einen Fehlalarm produziert.
 keinem CI-Lauf liegen. Es gehört von Hand gefahren, wenn eine Pin-Konvention
 geändert wird oder ein neuer Server dazukommt.
 
-Nur Standardbibliothek. Der Pin des jeweiligen Repos kommt aus
-`check_version_sync.ruff_specs` — dieselbe Erkennung, die auch die Gates fahren,
-statt einer zweiten, die die erste nicht widerlegen könnte.
+Nur Standardbibliothek, und bewusst ohne Import aus dem Nachbarskript: Das
+Werkzeug wird zwischen den Servern kopiert, und `check_version_sync.ruff_specs`
+gibt es dort nur in vier von zweiundvierzig. Ein Import fiele in den übrigen
+schon beim Start um — eine Kopie, die nie zum Messen käme.
 """
 
 from __future__ import annotations
@@ -36,13 +37,23 @@ import os
 import re
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from check_version_sync import ruff_specs  # noqa: E402
-
 PC = ".pre-commit-config.yaml"
+
+# Ein exakter ruff-Pin im dev-Extra.
+#
+# Zwei Abgrenzungen, und sie tun Verschiedenes:
+#   - Das geforderte `==` direkt nach `ruff` haelt `ruff-lsp==0.0.1` heraus —
+#     genau die Verwechslung, die anderswo im Portfolio zweimal danebenging.
+#   - `fullmatch` (nicht `search`) haelt Namen heraus, die auf `ruff` ENDEN:
+#     in `my-ruff==0.16.1` faende `search` sehr wohl ein `ruff==0.16.1`.
+#
+# Der Preis der Strenge: `ruff==0.16.1 ; sys_platform == "linux"` gilt hier
+# nicht als Pin. Das ist verkraftbar, weil der Fall sichtbar als «kein exakter
+# ruff-Pin» gemeldet wird, statt still ein falsches Ergebnis zu liefern.
+_PIN = re.compile(r"ruff(?:\[[^\]]*\])?==(\d+\.\d+\.\d+)")
 
 # Wer liest die Datei? Bewusst grosszügig — der Dateiname, der Werkzeugname, das
 # Schlüsselwort. Ein Treffer zu viel kostet einen Messlauf und wird von der
@@ -88,6 +99,33 @@ ERKLAERUNG = {
     OHNE_REV: "das Repo hat keine ruff-rev (etwa `repo: local`)",
     VORBEDINGUNG: "schon vor jeder Änderung rot — nicht messbar",
 }
+
+
+def pin_aus_pyproject(root: Path) -> str | None:
+    """Der exakte ruff-Pin aus `[project.optional-dependencies].dev`.
+
+    Über `tomllib` statt per Regex über den Dateitext: Kommentare, mehrzeilige
+    Listen und Anführungszeichen sind damit von vornherein kein Thema. Genau an
+    denen ist im Portfolio schon mehr als ein Pin-Leser gescheitert — einer las
+    seinen eigenen Erklärtext als Fundort.
+
+    `None`, wenn ruff dort nicht oder nicht exakt gepinnt ist. Das ist kein
+    Befund dieses Werkzeugs, sondern die Zuständigkeit der Gates; hier heisst
+    es nur: nichts zu messen.
+    """
+    datei = root / "pyproject.toml"
+    if not datei.exists():
+        return None
+    try:
+        daten = tomllib.loads(datei.read_text(encoding="utf-8"))
+    except (tomllib.TOMLDecodeError, OSError):
+        return None
+    dev = daten.get("project", {}).get("optional-dependencies", {}).get("dev", [])
+    for eintrag in dev:
+        treffer = _PIN.fullmatch(str(eintrag).strip())
+        if treffer:
+            return treffer.group(1)
+    return None
 
 
 def git(root: Path, *args: str) -> str:
@@ -163,10 +201,9 @@ def messe(root: Path, python: str, pytest: str) -> dict:
     name = root.name
     if git(root, "status", "--porcelain").strip():
         return {"repo": name, "fehler": "Arbeitsverzeichnis nicht sauber — uebersprungen"}
-    pins = ruff_specs(root)[0]
-    if not pins:
+    pin = pin_aus_pyproject(root)
+    if pin is None:
         return {"repo": name, "fehler": "kein exakter ruff-Pin in pyproject.toml"}
-    pin = pins[0][1]
 
     datei = root / PC
     original = datei.read_text(encoding="utf-8") if datei.exists() else None

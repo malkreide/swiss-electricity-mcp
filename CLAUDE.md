@@ -105,3 +105,19 @@ auslösen.
 
 **Fixtures:** `scripts/record_fixtures.py` erzeugt sie, Aufnahmedatum steht in
 `tests/fixtures/PROVENANCE.md`. Nicht von Hand pflegen.
+
+**`pin_audit.py` steht an drei Stellen.** `swiss-electricity-mcp`, `bakom-mcp`
+und `register-mcp` halten byteweise dieselbe `scripts/pin_audit.py` samt
+`tests/test_pin_audit.py`. Wer eine ändert, ändert alle drei im selben Commit —
+sonst misst der eine Server anders als der andere, und das ist genau die Drift,
+gegen die das Werkzeug gebaut ist. Kein Gate erzwingt das, es gibt nur diesen
+Absatz. Aus dem Verzeichnis, in dem die Server nebeneinander liegen:
+
+```bash
+sha256sum */scripts/pin_audit.py */tests/test_pin_audit.py |
+  awk '{print $1}' | sort | uniq -c
+```
+
+Erwartet: **zwei** Zeilen mit je **3**. Die Anzahl mitlesen, nicht nur die Zahl
+der Zeilen — findet der Glob nur ein Repo, stehen dort auch zwei Zeilen, und
+«einig» hiesse dann bloss, dass nichts verglichen wurde.

@@ -48,7 +48,7 @@ dev = [
     # Schritt liefe nach dem Install und wuerde diese Zeile ueberschreiben.
     # scripts/check_version_sync.py prueft beides: Gleichstand der zwei
     # Stellen und Abwesenheit eines eigenen CI-Pins.
-    "ruff==0.16.1",
+    "ruff==0.16.3",
 ]
 otel = [
     "opentelemetry-sdk>=1.25.0",

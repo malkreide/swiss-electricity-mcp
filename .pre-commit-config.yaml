@@ -1,5 +1,5 @@
 # Der Pin hier und der Pin in .github/workflows/test.yml («Install pinned
-# ruff») muessen dieselbe Version nennen: v0.16.1 == ruff==0.16.1.
+# ruff») muessen dieselbe Version nennen: v0.16.3 == ruff==0.16.3.
 #
 # Weichen sie ab, meldet lokal und in der CI je eine andere ruff-Version
 # Abweichungen, die niemand verursacht hat — und der Diff, in dem das
@@ -7,7 +7,7 @@
 # zieht die andere im selben Commit mit.
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.1
+    rev: v0.16.3
     hooks:
       # `files` spiegelt `ruff check src/ tests/ scripts/` aus der CI. Ohne
       # die Einschraenkung pruefte pre-commit auch Python ausserhalb dieser

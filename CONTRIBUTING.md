@@ -53,7 +53,7 @@ To run the CI gates by hand instead, install the pinned version explicitly —
 `pip install -e ".[dev]"` resolves `ruff>=0.4.0` to whatever is newest:
 
 ```bash
-pip install ruff==0.16.1
+pip install ruff==0.16.3
 ruff check src/ tests/ scripts/
 ruff format --check src/ tests/ scripts/
 ```

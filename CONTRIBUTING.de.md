@@ -53,7 +53,7 @@ Wer die Gates von Hand fährt, installiert die gepinnte Version explizit —
 `pip install -e ".[dev]"` löst `ruff>=0.4.0` auf die jeweils neueste auf:
 
 ```bash
-pip install ruff==0.16.1
+pip install ruff==0.16.3
 ruff check src/ tests/ scripts/
 ruff format --check src/ tests/ scripts/
 ```

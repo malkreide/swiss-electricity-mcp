@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import Annotated, Literal
 
 import httpx
+from mcp.server.caching import CacheHint
 from mcp.server.mcpserver import Context, MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import Field
@@ -115,8 +116,30 @@ async def lifespan(_server: MCPServer):
         get_logger().info("server_stopped")
 
 
+# SEP-2549, Spec 2026-07-28: die auflistenden Methoden tragen `ttlMs` und
+# `cacheScope`. Das SDK setzt beides auf «sofort veraltet, nie geteilt» — ein
+# Server ohne `cache_hints` verhaelt sich also nicht neutral, sondern laesst
+# jeden Client bei jeder Verbindung neu auflisten, fuer Listen, die beim Import
+# feststehen und sich zur Laufzeit des Prozesses nicht aendern koennen.
+#
+# `public` folgt aus der Sache, nicht aus Bequemlichkeit: die 12 Tools werden
+# per Dekorator beim Import registriert, es gibt keine Filterung nach Aufrufer.
+# Sobald eine Liste vom Aufrufer abhaengt, muss der Scope im selben Commit auf
+# `private` wechseln.
+#
+# `prompts/list` und `resources/list` bleiben ungesetzt: dieser Server
+# registriert weder Prompts noch Ressourcen, und ein Hinweis darauf beschriebe
+# eine Flaeche, die es nicht gibt.
+LIST_CACHE_TTL_MS = 300_000
+
+CACHE_HINTS = {
+    "tools/list": CacheHint(ttl_ms=LIST_CACHE_TTL_MS, scope="public"),
+    "server/discover": CacheHint(ttl_ms=LIST_CACHE_TTL_MS, scope="public"),
+}
+
 mcp = MCPServer(
     name="swiss-electricity-mcp",
+    cache_hints=CACHE_HINTS,
     instructions=(
         "Swiss electricity data from three official sources: Energiedashboard.ch (BFE) "
         "for national production/consumption/prices, ElCom for tariffs per municipality, "

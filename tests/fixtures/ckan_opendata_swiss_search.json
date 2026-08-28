@@ -2,7 +2,7 @@
   "help": "https://ckan.opendata.swiss/api/3/action/help_show?name=package_search",
   "success": true,
   "result": {
-    "count": 76,
+    "count": 75,
     "facets": {},
     "results": [
       {
@@ -602,17 +602,17 @@
         ],
         "creator_user_id": "0594d621-c92a-4a32-809c-98e281dc7944",
         "description": {
-          "it": "Risultati finali della votazione cantonale \"Ja zu sauberem Strom ohne Kohlekraft\", 22 settembre 2013, Graubünden - Grischun - Grigioni, suddivisi per municipalit.",
-          "fr": "Résultats finaux du vote cantonal \"Ja zu sauberem Strom ohne Kohlekraft\", 22 septembre 2013, Graubünden - Grischun - Grigioni, répartis par municipalités.",
-          "rm": "Resultats finals da la votaziun chantunala \"Ja zu sauberem Strom ohne Kohlekraft\", 22 da settember 2013, Graubünden - Grischun - Grigioni, ordinà tenor vischnancas.",
           "de": "Schlussresultate der kantonalen Abstimmung \"Ja zu sauberem Strom ohne Kohlekraft\", 22. September 2013, Graubünden - Grischun - Grigioni, aufgeschlüsselt nach Gemeinden.",
+          "rm": "Resultats finals da la votaziun chantunala \"Ja zu sauberem Strom ohne Kohlekraft\", 22 da settember 2013, Graubünden - Grischun - Grigioni, ordinà tenor vischnancas.",
+          "fr": "Résultats finaux du vote cantonal \"Ja zu sauberem Strom ohne Kohlekraft\", 22 septembre 2013, Graubünden - Grischun - Grigioni, répartis par municipalités.",
+          "it": "Risultati finali della votazione cantonale \"Ja zu sauberem Strom ohne Kohlekraft\", 22 settembre 2013, Graubünden - Grischun - Grigioni, suddivisi per municipalit.",
           "en": ""
         },
         "display_name": {
-          "it": "Ja zu sauberem Strom ohne Kohlekraft",
-          "fr": "Ja zu sauberem Strom ohne Kohlekraft",
-          "rm": "Ja zu sauberem Strom ohne Kohlekraft",
           "de": "Ja zu sauberem Strom ohne Kohlekraft",
+          "rm": "Ja zu sauberem Strom ohne Kohlekraft",
+          "fr": "Ja zu sauberem Strom ohne Kohlekraft",
+          "it": "Ja zu sauberem Strom ohne Kohlekraft",
           "en": ""
         },
         "documentation": [],
@@ -641,7 +641,7 @@
         "maintainer": null,
         "maintainer_email": null,
         "metadata_created": "2017-08-22T07:46:43.677945",
-        "metadata_modified": "2026-08-05T21:31:53.477335",
+        "metadata_modified": "2026-08-19T23:04:35.376996",
         "modified": "2022-01-19T06:36:17+00:00",
         "name": "ja-zu-sauberem-strom-ohne-kohlekraft",
         "num_resources": 2,
@@ -696,21 +696,12 @@
         "relations": [
           {
             "label": {
-              "de": "Descrizione del formato",
-              "en": "Descrizione del formato",
-              "fr": "Descrizione del formato",
-              "it": "Descrizione del formato"
+              "de": "Formatbeschreibung",
+              "en": "Formatbeschreibung",
+              "fr": "Formatbeschreibung",
+              "it": "Formatbeschreibung"
             },
-            "url": "https://github.com/OneGov/onegov-cloud/blob/master/src/onegov/election_day/static/docs/api/open_data_it.md"
-          },
-          {
-            "label": {
-              "de": "Description du format",
-              "en": "Description du format",
-              "fr": "Description du format",
-              "it": "Description du format"
-            },
-            "url": "https://github.com/OneGov/onegov-cloud/blob/master/src/onegov/election_day/static/docs/api/open_data_fr.md"
+            "url": "https://github.com/OneGov/onegov-cloud/blob/master/src/onegov/election_day/static/docs/api/open_data_de.md"
           },
           {
             "label": {
@@ -723,12 +714,21 @@
           },
           {
             "label": {
-              "de": "Formatbeschreibung",
-              "en": "Formatbeschreibung",
-              "fr": "Formatbeschreibung",
-              "it": "Formatbeschreibung"
+              "de": "Description du format",
+              "en": "Description du format",
+              "fr": "Description du format",
+              "it": "Description du format"
             },
-            "url": "https://github.com/OneGov/onegov-cloud/blob/master/src/onegov/election_day/static/docs/api/open_data_de.md"
+            "url": "https://github.com/OneGov/onegov-cloud/blob/master/src/onegov/election_day/static/docs/api/open_data_fr.md"
+          },
+          {
+            "label": {
+              "de": "Descrizione del formato",
+              "en": "Descrizione del formato",
+              "fr": "Descrizione del formato",
+              "it": "Descrizione del formato"
+            },
+            "url": "https://github.com/OneGov/onegov-cloud/blob/master/src/onegov/election_day/static/docs/api/open_data_it.md"
           }
         ],
         "see_alsos": [],
@@ -741,10 +741,10 @@
           }
         ],
         "title": {
-          "it": "Ja zu sauberem Strom ohne Kohlekraft",
-          "fr": "Ja zu sauberem Strom ohne Kohlekraft",
-          "rm": "Ja zu sauberem Strom ohne Kohlekraft",
           "de": "Ja zu sauberem Strom ohne Kohlekraft",
+          "rm": "Ja zu sauberem Strom ohne Kohlekraft",
+          "fr": "Ja zu sauberem Strom ohne Kohlekraft",
+          "it": "Ja zu sauberem Strom ohne Kohlekraft",
           "en": ""
         },
         "title_for_slug": "ja-zu-sauberem-strom-ohne-kohlekraft",
@@ -762,7 +762,7 @@
           },
           {
             "key": "harvest_object_id",
-            "value": "47630b74-d57d-40ad-a79b-ba7fcf110391"
+            "value": "b3aa36f0-1a1d-4b97-932a-b35fff3e1eec"
           },
           {
             "key": "harvest_source_id",
@@ -809,10 +809,10 @@
               "it": ""
             },
             "display_name": {
-              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
-              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
-              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
               "de": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
               "en": ""
             },
             "documentation": [],
@@ -826,15 +826,15 @@
             "last_modified": null,
             "license": "https://opendata.swiss/terms-of-use#terms_by",
             "media_type": "text/csv",
-            "metadata_modified": "2026-08-05T21:31:53.489986",
+            "metadata_modified": "2026-08-19T23:04:35.385666",
             "mimetype": null,
             "mimetype_inner": null,
             "modified": "2022-01-19T06:36:17+00:00",
             "name": {
-              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
-              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
-              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
               "de": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
               "en": ""
             },
             "package_id": "642b40e8-7e4a-4836-9732-5692ec2b4df3",
@@ -845,10 +845,10 @@
             "state": "active",
             "temporal_resolution": "",
             "title": {
-              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
-              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
-              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
               "de": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
+              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.csv",
               "en": ""
             },
             "uri": "http://standeskanzlei-graubuenden/vote-ja-zu-sauberem-strom-ohne-kohlekraft/csv",
@@ -870,10 +870,10 @@
               "it": ""
             },
             "display_name": {
-              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
-              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
-              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
               "de": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
               "en": ""
             },
             "documentation": [],
@@ -887,15 +887,15 @@
             "last_modified": null,
             "license": "https://opendata.swiss/terms-of-use#terms_by",
             "media_type": "application/json",
-            "metadata_modified": "2026-08-05T21:31:53.490126",
+            "metadata_modified": "2026-08-19T23:04:35.385771",
             "mimetype": null,
             "mimetype_inner": null,
             "modified": "2022-01-19T06:36:17+00:00",
             "name": {
-              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
-              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
-              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
               "de": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
               "en": ""
             },
             "package_id": "642b40e8-7e4a-4836-9732-5692ec2b4df3",
@@ -906,10 +906,10 @@
             "state": "active",
             "temporal_resolution": "",
             "title": {
-              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
-              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
-              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
               "de": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "rm": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "fr": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
+              "it": "ja-zu-sauberem-strom-ohne-kohlekraft.json",
               "en": ""
             },
             "uri": "http://standeskanzlei-graubuenden/vote-ja-zu-sauberem-strom-ohne-kohlekraft/json",

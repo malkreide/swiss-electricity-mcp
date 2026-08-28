@@ -60,20 +60,20 @@
     "anteilPhotovoltaik": 12.08
   },
   "2026": {
-    "kumuliertEigenproduktion": 40.6,
-    "kumuliertKernkraft": 10.6,
-    "kumuliertThermische": 2.1,
-    "kumuliertFlusskraft": 8.5,
-    "kumuliertSpeicherkraft": 12.4,
+    "kumuliertEigenproduktion": 45.4,
+    "kumuliertKernkraft": 11.8,
+    "kumuliertThermische": 2.3,
+    "kumuliertFlusskraft": 9.9,
+    "kumuliertSpeicherkraft": 13.6,
     "kumuliertWind": 0.1,
-    "kumuliertPhotovoltaik": 6.9,
-    "anteilKernkraft": 26.03,
-    "anteilThermische": 5.25,
-    "anteilFlusskraft": 20.96,
-    "anteilSpeicherkraft": 30.48,
-    "anteilWind": 0.23,
-    "anteilPhotovoltaik": 17.06
+    "kumuliertPhotovoltaik": 7.7,
+    "anteilKernkraft": 25.94,
+    "anteilThermische": 5.14,
+    "anteilFlusskraft": 21.87,
+    "anteilSpeicherkraft": 29.86,
+    "anteilWind": 0.22,
+    "anteilPhotovoltaik": 16.97
   },
-  "date": "2026-08-06",
+  "date": "2026-08-28",
   "isUpToDate": true
 }

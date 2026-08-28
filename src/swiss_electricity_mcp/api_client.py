@@ -280,6 +280,47 @@ def _category_filter(category: str | None) -> str:
     return f'FILTER(STR(?categoryCode) = "{_sparql_escape_literal(category)}")'
 
 
+# Die Perioden-Dimension der ElCom-Cubes ist `xsd:gYear`-typisiert, nicht
+# numerisch. `FILTER(?period >= 2019)` stellt damit einen Vergleich zwischen
+# gYear und Integer an. Der ist nach SPARQL 1.1 (17.2) keiner: Er ergibt einen
+# Typfehler, und ein FILTER, dessen Ausdruck fehlschlaegt, verwirft die Zeile.
+# Herauskommt HTTP 200 mit null Zeilen — aeusserlich nicht zu unterscheiden von
+# einem leeren, aber gueltigen Ergebnis.
+#
+# Genau so waren alle drei ElCom-Werkzeuge still kaputt, sobald jemand
+# `period_from` oder `period_to` mitgab, waehrend die Unit-Tests gruen blieben:
+# Die Fixtures sind ohne Periodenfilter aufgezeichnet, also hat nie ein Test die
+# Klausel gesehen, um die es geht. Aufgefallen ist es der Live-Suite.
+#
+# Der Umweg ueber STR() vergleicht Zahlen mit Zahlen und haelt, egal welchen der
+# beiden Typen die Quelle gerade fuehrt. Ein auf `gYear` festgenageltes Literal
+# waere nur die Gegenrichtung desselben Fehlers — es braeche, sobald die Quelle
+# zurueckwechselt, und zwar wieder lautlos. Das REPLACE schneidet die Zeitzone
+# ab, die `gYear` erlaubt (`2019Z`, `2019+02:00`); ohne den Schnitt scheitert die
+# Umwandlung, und die Zeile faellt aus demselben Grund weg wie zuvor.
+_PERIOD_AS_INT = 'xsd:integer(REPLACE(STR(?period), "^(-?[0-9]+).*$", "$1"))'
+
+# Der `xsd:`-Praefix wird mitgeschickt, statt sich auf den Endpunkt zu
+# verlassen: Fuseki kennt ihn vordefiniert, das ist aber eine Eigenheit der
+# Implementierung und keine Zusicherung von SPARQL 1.1.
+SPARQL_PREFIX_XSD = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
+
+
+def _period_filter(period_from: int | None, period_to: int | None) -> str:
+    """Build the SPARQL FILTER clauses bounding `?period` (see `_PERIOD_AS_INT`)."""
+    clauses = ""
+    for bound, op in ((period_from, ">="), (period_to, "<=")):
+        if bound is None:
+            continue
+        # Die Grenzen landen unquotiert in der Abfrage. `server.py` typisiert sie
+        # als `int`, doch der Client ist auch direkt aufrufbar, und ein
+        # `int()`-Cast machte aus 2019.7 stillschweigend 2019.
+        if isinstance(bound, bool) or not isinstance(bound, int):
+            raise ValueError(f"Period bound must be an int, got {bound!r}")
+        clauses += f"FILTER({_PERIOD_AS_INT} {op} {bound}) "
+    return clauses
+
+
 async def _fetch_with_retry(
     http: httpx.AsyncClient,
     method: str,
@@ -535,13 +576,10 @@ class ElComSparqlClient:
         limit: int = 100,
     ) -> tuple[list[dict], str, str]:
         category_filter = _category_filter(category)
-        period_filter = ""
-        if period_from is not None:
-            period_filter += f"FILTER(?period >= {period_from}) "
-        if period_to is not None:
-            period_filter += f"FILTER(?period <= {period_to}) "
+        period_filter = _period_filter(period_from, period_to)
         query = f"""
 PREFIX schema: <http://schema.org/>
+{SPARQL_PREFIX_XSD}
 SELECT ?period ?categoryCode ?productLabel ?operator ?operatorLabel
        ?total ?energy ?gridusage ?charge ?aidfee
        ?energyName ?gridusageName ?munLabel
@@ -579,17 +617,14 @@ LIMIT {limit}
         limit: int = 200,
     ) -> tuple[list[dict], str, str]:
         category_filter = _category_filter(category)
-        period_filter = ""
-        if period_from is not None:
-            period_filter += f"FILTER(?period >= {period_from}) "
-        if period_to is not None:
-            period_filter += f"FILTER(?period <= {period_to}) "
+        period_filter = _period_filter(period_from, period_to)
         # Der Cube wird ueber `cube.link/observationSet` eingegrenzt, nicht mehr
         # ueber einen eigenen Praedikat-Namensraum: Alle drei ElCom-Cubes teilen
         # sich inzwischen `electricityprice/dimension/*`. Ohne diese Klammer
         # kaemen die Gemeinde-Beobachtungen mit — ein Median ueber die falsche
         # Grundmenge, und nichts an der Antwort wuerde es verraten.
         query = f"""
+{SPARQL_PREFIX_XSD}
 SELECT ?period ?categoryCode ?total
 WHERE {{
   <{ELCOM_CUBE_SWISS}> <https://cube.link/observationSet> ?set .
@@ -616,13 +651,10 @@ LIMIT {limit}
         limit: int = 200,
     ) -> tuple[list[dict], str, str]:
         category_filter = _category_filter(category)
-        period_filter = ""
-        if period_from is not None:
-            period_filter += f"FILTER(?period >= {period_from}) "
-        if period_to is not None:
-            period_filter += f"FILTER(?period <= {period_to}) "
+        period_filter = _period_filter(period_from, period_to)
         query = f"""
 PREFIX schema: <http://schema.org/>
+{SPARQL_PREFIX_XSD}
 SELECT ?period ?categoryCode ?total ?cantonLabel
 WHERE {{
   <{ELCOM_CUBE_CANTON}> <https://cube.link/observationSet> ?set .

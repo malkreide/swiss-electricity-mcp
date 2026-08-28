@@ -47,6 +47,18 @@ BFS_NR = 261
 BFS_NAME = "Zürich"
 CANTON = "Luzern"
 SPARQL_LIMIT = 5
+
+# Die Aufzeichnung laeuft MIT Periodengrenze, und das ist der Zweck, nicht ein
+# Detail der Auswahl. Ohne sie hat keine Fixture je die FILTER-Klausel gesehen —
+# und genau dort stand ein Vergleich, der `xsd:gYear` gegen einen Integer hielt
+# und deshalb fuer jede Gemeinde, jeden Kanton und jedes Jahr null Zeilen ergab.
+# Die Unit-Tests blieben gruen, weil die Klausel in keiner Aufnahme vorkam.
+#
+# Mit der Grenze bricht `record()` beim naechsten Mal laut ab, statt eine leere
+# Antwort aufzuzeichnen. Nur eine Untergrenze: Eine Obergrenze muesste jedes
+# Jahr nachgezogen werden, und `ORDER BY DESC(?period)` liefert ohnehin die
+# neuesten Zeilen, sodass der Inhalt der Fixture derselbe bleibt.
+PERIOD_FROM = 2019
 CKAN_ROWS = 3
 CKAN_QUERY = "strom"
 
@@ -211,11 +223,13 @@ async def record() -> int:
         # 1) ElCom-Tarife ueber LINDAS. Die Abfrage baut der Produktivcode.
         elcom = api_client.ElComSparqlClient(http=http)
 
-        bindings, _, _ = await elcom.get_tariffs_by_municipality(BFS_NR, limit=SPARQL_LIMIT)
+        bindings, _, _ = await elcom.get_tariffs_by_municipality(
+            BFS_NR, period_from=PERIOD_FROM, limit=SPARQL_LIMIT
+        )
         if not bindings:
             raise SystemExit(
-                f"LINDAS: keine Tarife fuer BFS {BFS_NR} ({BFS_NAME}) — "
-                "Gemeinde, Cube oder Abfrage pruefen"
+                f"LINDAS: keine Tarife fuer BFS {BFS_NR} ({BFS_NAME}) ab {PERIOD_FROM} — "
+                "Gemeinde, Cube, Periodenfilter oder Abfrage pruefen"
             )
         if len(bindings) > SPARQL_LIMIT:
             raise SystemExit(
@@ -227,34 +241,39 @@ async def record() -> int:
             "lindas_tariffs_municipality.json",
             body,
             request,
-            f"Tarife der Gemeinde {BFS_NAME} (BFS {BFS_NR}), {len(bindings)} Zeilen "
-            f"bei LIMIT {SPARQL_LIMIT}. Die SPARQL-Abfrage stammt aus "
+            f"Tarife der Gemeinde {BFS_NAME} (BFS {BFS_NR}) ab {PERIOD_FROM}, "
+            f"{len(bindings)} Zeilen bei LIMIT {SPARQL_LIMIT}. Die SPARQL-Abfrage stammt aus "
             "`get_tariffs_by_municipality` und ist nicht daneben nachgebaut",
         )
 
-        bindings, _, _ = await elcom.get_median_swiss(limit=SPARQL_LIMIT)
+        bindings, _, _ = await elcom.get_median_swiss(period_from=PERIOD_FROM, limit=SPARQL_LIMIT)
         if not bindings:
-            raise SystemExit("LINDAS: kein Schweizer Median — Cube geaendert?")
+            raise SystemExit(
+                f"LINDAS: kein Schweizer Median ab {PERIOD_FROM} — Cube oder Periodenfilter geaendert?"
+            )
         request, body = recorder.last()
         write(
             "lindas_median_swiss.json",
             body,
             request,
-            f"Schweizer Medianpreise, {len(bindings)} Zeilen bei LIMIT {SPARQL_LIMIT}; "
-            "Abfrage aus `get_median_swiss`",
+            f"Schweizer Medianpreise ab {PERIOD_FROM}, {len(bindings)} Zeilen bei "
+            f"LIMIT {SPARQL_LIMIT}; Abfrage aus `get_median_swiss`",
         )
 
-        bindings, _, _ = await elcom.get_median_canton(CANTON, limit=SPARQL_LIMIT)
+        bindings, _, _ = await elcom.get_median_canton(
+            CANTON, period_from=PERIOD_FROM, limit=SPARQL_LIMIT
+        )
         if not bindings:
-            raise SystemExit("LINDAS: keine Kantonsmediane — Cube geaendert?")
+            raise SystemExit(
+                f"LINDAS: keine Kantonsmediane ab {PERIOD_FROM} — Cube oder Periodenfilter geaendert?"
+            )
         request, body = recorder.last()
         write(
             "lindas_median_canton.json",
             body,
             request,
-            f"Medianpreise des Kantons {CANTON}, {len(bindings)} Zeilen bei "
-            f"LIMIT {SPARQL_LIMIT}; "
-            "Abfrage aus `get_median_canton`",
+            f"Medianpreise des Kantons {CANTON} ab {PERIOD_FROM}, {len(bindings)} Zeilen "
+            f"bei LIMIT {SPARQL_LIMIT}; Abfrage aus `get_median_canton`",
         )
 
         # 2) Das Energiedashboard des BFE.

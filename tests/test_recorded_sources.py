@@ -24,13 +24,15 @@ dafuer ist die Live-Suite da.
 from __future__ import annotations
 
 import json
+import re
+import urllib.parse
 from types import SimpleNamespace
 
 import httpx
 import pytest
 
 from swiss_electricity_mcp import api_client, server
-from tests.fixture_data import bindings, payload
+from tests.fixture_data import FIXTURES, bindings, payload
 
 ELCOM_NS = "https://energy.ld.admin.ch/elcom/electricityprice/dimension/"
 
@@ -130,6 +132,131 @@ def test_recorded_bindings_parse_into_values():
     assert 0 < float(total) < 200, f"Rappen pro kWh ausserhalb jedes plausiblen Bereichs: {total}"
     period = api_client.sparql_value(rows[0], "period")
     assert int(period) >= 2000, period
+
+
+# ---------------------------------------------------------------------------
+# Die Periodengrenzen
+# ---------------------------------------------------------------------------
+
+# Ein Vergleich, der `?period` unverpackt gegen etwas haelt. Die Form, die den
+# Ausfall erzeugt hat; `STR(?period)` und `DESC(?period)` trifft sie nicht.
+_ROHER_PERIODENVERGLEICH = re.compile(r"\?period\s*(?:<=|>=|<|>|=)")
+
+_PERIODEN_ABFRAGEN = [
+    ("get_tariffs_by_municipality", (261,)),
+    ("get_median_swiss", ()),
+    ("get_median_canton", ("Luzern",)),
+]
+
+
+def test_the_recorded_answer_types_period_as_gyear():
+    """Die Praemisse der drei Tests darunter, aus der Quelle statt aus dem Kopf.
+
+    Sie sagen, `?period` duerfe nicht unverpackt verglichen werden. Warum nicht,
+    steht hier: Die Quelle liefert die Periode als `gYear`, nicht als Zahl. Ohne
+    diesen Beleg waeren es drei Tests, die eine Annahme gegen sich selbst
+    pruefen.
+    """
+    gyear = "http://www.w3.org/2001/XMLSchema#gYear"
+    for name in (
+        "lindas_tariffs_municipality.json",
+        "lindas_median_swiss.json",
+        "lindas_median_canton.json",
+    ):
+        for row in bindings(name):
+            assert row["period"]["datatype"] == gyear, (
+                f"{name}: `period` ist {row['period'].get('datatype')!r}. "
+                "Wechselt die Quelle den Typ, ist der Filter neu zu belegen."
+            )
+
+
+@pytest.mark.parametrize("method,args", _PERIODEN_ABFRAGEN)
+async def test_period_bounds_never_compare_the_raw_term(method, args):
+    """`FILTER(?period >= 2019)` vergleicht gYear mit Integer.
+
+    Das ist nach SPARQL 1.1 kein Vergleich, sondern ein Typfehler, und ein
+    FILTER mit fehlgeschlagenem Ausdruck verwirft die Zeile. Die Antwort ist
+    HTTP 200 mit null Zeilen — wieder ein Ausfall in der Form einer Auskunft.
+    Alle drei ElCom-Werkzeuge lieferten so leere Ergebnisse, sobald jemand einen
+    Zeitraum angab, und keine Fixture konnte es sehen: Aufgezeichnet wurde ohne
+    Periodenfilter.
+    """
+    query = await _query_for(method, *args, period_from=2019, period_to=2025)
+    treffer = _ROHER_PERIODENVERGLEICH.search(query)
+    assert treffer is None, f"unverpackter Periodenvergleich: {treffer.group(0)!r}"
+    assert api_client._PERIOD_AS_INT in query, "die Periode wird nicht numerisch verglichen"
+
+
+@pytest.mark.parametrize("method,args", _PERIODEN_ABFRAGEN)
+async def test_both_period_bounds_reach_the_query(method, args):
+    """Eine stillschweigend fallengelassene Grenze liefert zu viel, nicht zu wenig.
+
+    Und zu viel faellt niemandem auf: Die Antwort ist nicht leer, sie umfasst
+    nur einen anderen Zeitraum als den erfragten.
+    """
+    query = await _query_for(method, *args, period_from=2019, period_to=2025)
+    assert f"{api_client._PERIOD_AS_INT} >= 2019" in query, "untere Grenze fehlt"
+    assert f"{api_client._PERIOD_AS_INT} <= 2025" in query, "obere Grenze fehlt"
+
+    ohne = await _query_for(method, *args)
+    assert ">= 2019" not in ohne and "<= 2025" not in ohne, (
+        "ohne Grenzen darf kein Periodenfilter in der Abfrage stehen"
+    )
+
+
+@pytest.mark.parametrize("method,args", _PERIODEN_ABFRAGEN)
+async def test_a_query_using_xsd_declares_the_prefix(method, args):
+    """Fuseki kennt `xsd:` vordefiniert. Das ist keine Zusicherung von SPARQL 1.1.
+
+    Faellt die Deklaration weg, laeuft es gegen LINDAS weiter und gegen jeden
+    anderen Endpunkt nicht mehr — ein Fehler, den ausgerechnet die Quelle
+    verdeckt, gegen die geprueft wird.
+    """
+    query = await _query_for(method, *args, period_from=2019)
+    assert "xsd:" in query, "Test prueft nichts mehr: die Abfrage benutzt gar kein `xsd:`"
+    assert api_client.SPARQL_PREFIX_XSD in query, "`xsd:` benutzt, aber nicht deklariert"
+
+
+@pytest.mark.parametrize("bound", [2019.7, "2019", True, None.__class__])
+def test_a_non_integer_period_bound_is_refused(bound):
+    """Die Grenzen landen unquotiert in der Abfrage.
+
+    `server.py` typisiert sie als `int`, der Client ist aber auch direkt
+    aufrufbar. Ein `int()`-Cast machte aus 2019.7 klaglos 2019 und beantwortete
+    eine andere Frage als die gestellte.
+    """
+    with pytest.raises(ValueError):
+        api_client._period_filter(bound, None)
+    with pytest.raises(ValueError):
+        api_client._period_filter(None, bound)
+
+
+def test_the_recording_itself_went_through_the_period_filter():
+    """Die Aufnahme muss die Klausel benutzen, sonst belegt sie nichts ueber sie.
+
+    Aufgezeichnet wurde urspruenglich ohne Periodengrenze. Deshalb konnte keine
+    Fixture den kaputten Vergleich sehen, und deshalb ist der Ausfall erst der
+    Live-Suite aufgefallen — Wochen spaeter. `record_fixtures.py` setzt die
+    Grenze nun, und `record()` bricht bei einer leeren Antwort laut ab: Der
+    Fehler faellt dann beim Aufzeichnen auf statt im Betrieb.
+
+    Geprueft wird die aufgezeichnete Abfrage, nicht die Antwort. Ob der Filter
+    gewirkt hat, sieht man einer Zeile nicht an; ob er in der Abfrage stand,
+    schon.
+    """
+    provenance = (FIXTURES / "PROVENANCE.md").read_text(encoding="utf-8")
+    quellen = [
+        urllib.parse.unquote_plus(zeile)
+        for zeile in provenance.splitlines()
+        if zeile.startswith("- **Quelle:**") and "lindas.admin.ch" in zeile
+    ]
+    assert len(quellen) == 3, f"drei LINDAS-Aufnahmen erwartet, {len(quellen)} gefunden"
+    for quelle in quellen:
+        assert api_client._PERIOD_AS_INT in quelle, (
+            "aufgezeichnete LINDAS-Abfrage ohne Periodenfilter — "
+            "neu aufzeichnen mit `python scripts/record_fixtures.py`"
+        )
+        assert api_client.SPARQL_PREFIX_XSD in quelle, "aufgezeichnete Abfrage ohne `xsd:`-Praefix"
 
 
 async def _storage_lakes_from_fixture(

@@ -164,8 +164,8 @@ docker run --rm -p 8000:8000 swiss-electricity-mcp
           │                          stdio  or  Streamable HTTP                           │
           └───────────────────────────────────────┬──────────────────────────────────────┘
                                                    │  12 read-only tools (annotated)
-                                          ┌────────▼─────────┐
-                                          │  FastMCP server   │  egress allow-list + HTTPS gate
+                                          ┌────────▼──────────┐
+                                          │  MCPServer (mcp)  │  egress allow-list + HTTPS gate
                                           │  + structlog/OTel │  per-source TTL cache + retry
                                           └───┬────────┬───┬──┘
                   dashboard_* │ tariff_*      │        │   │   consumption_*

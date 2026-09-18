@@ -340,20 +340,25 @@ ohne dass jemand hineingesehen hat, und am 22.8. noch einmal 43.
   die Meldung und in keinem die Reaktion. Der Kasten ist keine Quelle. Am
   18.9.2026 behauptete er auf `swiss-electricity-mcp` PR #75 zusätzlich eine
   Reaktion *während* des Laufs («reacts with 👀 while any review is running»);
-  gemessen wurde `reactions.total_count: 0` in **allen elf** Ablesungen des
-  Tages. Entscheidend ist nicht die Zahl, sondern welche darunter sind: drei
+  gemessen wurde `reactions.total_count: 0` in **jeder** Ablesung des
+  Tages. Entscheidend ist nicht deren Anzahl, sondern welche Zustände
+  darunter sind: vier
   **echte** Läufe im Zustand `🔄 Running` (dort behauptet der Kasten 👀) und
   vier **echte** Läufe im Zustand `✅ Completed` ohne Befund (dort behauptet er
   👍). Beide Behauptungen sind damit genau in den Zuständen widerlegt, für die
   sie aufgestellt werden — nicht bloss an Absagen, wo ohnehin nichts zu
   erwarten wäre.
-- **Der PR ist ein Draft** — darauf läuft Codex nicht an.
+- **Der PR ist ein Draft** — darauf läuft kein Review an. Schweigen ist das
+  aber nicht zwingend, siehe unten.
 - **Das Kontingent ist weg** — dann schreibt er die Meldung oben.
 - **Für das Repo fehlt eine Environment** — dann schreibt er:
 
   ```
   To use Codex here, create an environment for this repo.
   ```
+
+  Der Umkehrschluss gilt nicht: Dieselbe Meldung kam auch dort, wo die
+  Environment nachweislich vorhanden war, siehe unten.
 
 Der vierte kam erst zum Vorschein, als der dritte wegfiel, und das ist kein
 Zufall: Die Prüfungen liegen hintereinander. Dass es diese Reihenfolge ist und
@@ -376,9 +381,11 @@ sich an der Form: Ein Review **mit** Befund ist ein Review-Objekt
 («💡 Codex Review», mit Commit-Angabe); ein Review **ohne** Befund und die
 beiden Ausfallmeldungen — Kontingent wie Environment — sind gewöhnliche
 Issue-Kommentare und trennen sich nur im Text — wobei die beiden
-Ausfallmeldungen auch in einem Review-Thread stehen können, siehe unten. Beim Draft gibt es überhaupt
-nichts, weil Codex nicht anläuft; ein kommentarloser Draft ist deshalb kein
-Beleg, sondern ein nicht durchgeführter Test.
+Ausfallmeldungen auch in einem Review-Thread stehen können, siehe unten.
+Auf einem Draft läuft kein Review an; ein kommentarloser Draft ist deshalb
+kein Beleg, sondern ein nicht
+durchgeführter Test. Dass dort **überhaupt nichts** komme, stimmt allerdings
+nicht — siehe den Abschnitt zur Environment-Meldung.
 
 Das sind **drei** verschiedene Abfragen, nicht zwei: `get_reviews` fürs Objekt,
 `get_comments` für die Issue-Kommentare und `get_review_comments` für die
@@ -619,6 +626,54 @@ an, und zwar **je Repo**. Die Meldung sagt es selbst («for this repo»), und am
 Review; in den übrigen Repos lief Codex am selben Morgen durch. Eine
 Environment fürs Konto genügt also nicht — wer eine anlegt und den Rest für
 erledigt hält, mergt weiter Ungeprüftes.
+
+**Die Meldung sagt aber nicht, warum sie kommt.** Am 18.9.2026 um 13:11:34Z
+entstand `swiss-electricity-mcp` PR #83 als **Draft**. Vierzehn Sekunden später,
+um 13:11:48Z, stand dort:
+
+```
+To use Codex here, create an environment for this repo.
+```
+
+Kein Umschalten auf «ready», kein `@codex review`, keine Zusammenfassungstabelle
+— und im selben Repo war gut fünf Minuten vorher ein Review sauber durchgelaufen
+(PR #82, 13:04:05Z bis 13:06:13Z). Die Positivkontrolle kam um 13:14:31Z: PR #83
+auf «ready» gesetzt, sieben Sekunden später startete der Review mit dem Auslöser
+`Draft marked ready`. **Die Environment existiert.** Die Meldung von 13:11:48Z
+stand trotzdem da, und sie steht unverändert im PR — `updated_at` gleich
+`created_at`, niemand hat sie zurückgenommen.
+
+Zwei Gegenproben im selben Repo, beide am selben Vormittag: #81 und #82 waren
+ebenfalls Drafts und trugen **keine** solche Meldung. Sie ist also weder eine
+Eigenschaft des Repos noch eine des Draft-Zustands, sondern etwas
+Vorübergehendes.
+
+Daraus zwei Korrekturen weiter oben in diesem Abschnitt:
+
+- **«Beim Draft gibt es überhaupt nichts» war falsch.** Richtig bleibt, dass auf
+  einem Draft kein Review anläuft — eine Tabelle kam nicht. Codex schreibt dort
+  aber trotzdem. Ein Kommentar auf einem Draft ist deshalb kein Beleg, dass
+  geprüft wurde; genau die umgekehrte Verwechslung wie beim kommentarlosen
+  Draft, und sie fällt leichter, weil ein Kommentar nach Arbeit aussieht.
+- **Von der Environment-Meldung nicht auf eine fehlende Environment
+  schliessen.** Der 23.8. in `swiss-public-data-mcp` bleibt ein Fall, in dem
+  beides zusammenfiel; er belegt nicht, dass der Text seine Ursache nennt.
+  Belegt ist jetzt das Gegenteil: derselbe Text, wo die Environment
+  nachweislich arbeitet.
+
+Was die Meldung *stattdessen* anzeigt, ist offen. Die naheliegende Vermutung —
+Codex lehnt den Draft ab und greift dafür zur falschen Vorlage — verträgt sich
+schlecht mit den beiden Gegenproben: #81 und #82 waren ebenfalls Drafts und
+bekamen nichts. Eine vorübergehende Störung passt besser, ist aber ebenso
+wenig gemessen. Gemessen ist allein, dass der Wortlaut hier nicht zutraf.
+
+Das ist dieselbe Figur wie beim 403 weiter oben, zum dritten Mal in dieser
+Datei: eine Störung, die als Auskunft über die Quelle daherkommt. Dort war eine
+Sperre als Fund-Fehlschlag verpackt, hier ist eine Absage als
+Konfigurationsmangel verpackt. Wer dem Wortlaut folgt, legt eine Environment an,
+die es längst gibt — und hält das Problem danach für gelöst. Der Handgriff ist
+derselbe wie überall in diesem Abschnitt: **erst die Positivkontrolle, dann die
+Einordnung.** Sie kostete hier einen einzigen Klick auf «ready».
 
 ---
 

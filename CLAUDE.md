@@ -256,6 +256,7 @@ trägt Bedeutung:
   | 18.9. 07:57:05 | `swiss-electricity-mcp` #79 auf ready | ja |
   | 18.9. 08:33:16 | `bakom-mcp` #97 auf ready | ja |
   | 18.9. 14:37:35 | `swiss-electricity-mcp` #84 auf ready | ja |
+  | 18.9. 14:44:21 | `swiss-electricity-mcp` #85 auf ready | ja |
 
 Falls das trägt, sagt der Zusatz mit, *welcher* Topf leer ist — Code-Reviews
 haben laut Codex einen eigenen. Und er stützt nebenbei die offene Frage weiter
@@ -314,9 +315,17 @@ eine Sperre eingrenzen will, braucht beides: den letzten belegten Fehlschlag
 Vormittagssperre — 12:39:08Z (#80), 12:49:08Z (#81), 13:04:05Z (#82),
 13:14:38Z (#83). Um 14:37:35Z kam auf #84 wieder die Kontingent-Meldung. Die
 Erschöpfung fiel also **zwischen 13:14:38Z und 14:37:35Z**, 83 Minuten, in
-denen nicht gemessen wurde. Zwei Sperren an einem Tag, beide nur als Intervall
-belegt — und das passt zum rollenden Fünf-Stunden-Fenster, beweist es aber
-nicht: Vier Läufe verbrauchen etwas, wie viel, sagt keine dieser Beobachtungen.
+denen nicht gemessen wurde. Und das passt zum rollenden Fünf-Stunden-Fenster,
+beweist es aber nicht: Vier Läufe verbrauchen etwas, wie viel, sagt keine
+dieser Beobachtungen.
+
+Sieben Minuten später, um 14:44:21Z, kam auf PR #85 dieselbe Meldung. Das ist
+ein **zweiter Beobachtungspunkt, keine Dauer** — und der Reflex, aus 14:37:35Z
+und 14:44:21Z «mindestens sieben Minuten» zu machen, ist derselbe, den die
+Augustrechnung weiter unten schon einmal falsch gemacht hat. Die obere Grenze
+dieser zweiten Sperre ist **offen**: Der erste Erfolg danach wurde nicht
+beobachtet, und ohne ihn lässt sie sich nicht schliessen. Von der ersten Sperre
+des Tages unterscheidet sie genau das.
 
 **Die Untergrenze ist der Start des letzten Laufs, nicht sein Ende.** Beim
 Aufschreiben stand hier zuerst 13:26:41Z, der Zeitpunkt, an dem der Lauf auf
@@ -676,6 +685,11 @@ dem Merge. Der ready-Zeitpunkt liegt nur als Webhook-Zustellung vor (~14:37:30Z)
 und ist hier nicht aus der API belegt; die Spanne ready→Merge ist also rund drei
 Sekunden, aber nicht auf die Sekunde gemessen. Die beiden anderen Zeitpunkte
 sind es.
+
+Sieben Minuten später dasselbe auf PR #85, nur noch enger: `merged_at`
+14:44:21Z und das `created_at` der Meldung 14:44:21Z — **dieselbe Sekunde**.
+Zwei Fälle also, und der zweite zeigt, dass es keine Frage von Sekunden
+Vorsprung ist: Der geschlossene PR nimmt die Meldung entgegen, Punkt.
 
 Das ist **kein vierter Beleg** für den Satz oben, und der Unterschied ist der
 ganze Punkt: Dort läuft ein Review weiter, hier lief nie einer. Gemeinsam ist

@@ -335,15 +335,32 @@ entgegengesetzter Aussage.
 **Erkannt wird das am Status-Feld, nicht am Zeitstempel: nachfassen, bis ein
 Endzustand dasteht.** `🔄 Running` gegen `✅ Completed` ist die Unterscheidung;
 `updated_at` sagt nur, dass der Kommentar überschrieben *wurde*, nicht wohin.
-Ein neuer Auslöser — ein weiterer Push, ein «@codex review» — setzt dieselbe
-Tabelle wieder auf `🔄 Running` und bewegt `updated_at` ein zweites Mal. Wer
-die Bewegung für «fertig» nimmt, liest ein Rücksetzen als Abschluss.
+Ein bewegter Zeitstempel ist damit kein Beleg für einen Abschluss — er ist
+nicht einmal gerichtet.
 
 `updated_at` behält eine schmalere, richtige Aufgabe: es **datiert** eine
 Momentaufnahme. Wer die Tabelle abschreibt — in eine Notiz, einen Bericht, eine
 Statuszeile —, schreibt einen Zwischenstand ab, und ohne den Zeitstempel daneben
 steht später ein Urteil, das nie eines war. `created_at` leistet auch das nicht:
 es bleibt beim ersten Schreiben stehen.
+
+Zwei Dinge, die hier naheliegen und **nicht gemessen** sind. Ob ein zweiter
+Review denselben Kommentar wiederverwendet und ihn auf `🔄 Running`
+zurücksetzt: Die Kopfzeile sagt «This comment shows the *latest* Codex review
+activity on this pull request», und die `id` blieb innerhalb eines Laufs
+stabil — beobachtet wurde aber auf beiden PRs nur je **ein** Lauf, das
+Überschreiben also nur innerhalb eines Lebenszyklus (`Running` → `Completed`).
+Und ob ein blosser Push einen Review auslöst: Der Infokasten listet nur «open
+a PR for review», «mark a draft as ready» und «@codex review». Eine Messung am
+18.9.2026 stützt ihn ausnahmsweise — nach dem Push von `ee0df1f` auf den
+offenen PR #76 stand die Tabelle eine Minute später unverändert auf
+`✅ Completed` für den **vorherigen** Commit `4dc4e8f`. Eine einzelne Ablesung
+kurz nach dem Push schliesst einen verzögerten Lauf nicht aus; als Auslöser
+gilt ein Push bis auf Weiteres nicht.
+
+Der Reihenfolge wegen: Beide Sätze standen hier schon einmal als Tatsache, in
+derselben Fassung, die den Fehler unten korrigierte. Wer eine Regel
+zurechtrückt, baut dabei gern die nächste unbelegte ein.
 
 Diese Fassung ist die zweite. Die erste machte `updated_at` zur Erkennungsregel
 und behauptete, «Codex hat nichts geschrieben» und «Codex war noch nicht fertig»

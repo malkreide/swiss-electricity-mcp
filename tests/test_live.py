@@ -1,6 +1,12 @@
 """Live tests for swiss-electricity-mcp — hit the real upstream APIs.
 
-These are excluded from CI (marker `live`). Run them manually / nightly:
+Excluded from the *pull-request* CI via the `live` marker (`-m "not live"`) —
+but not from CI as such. `.github/workflows/live-tests.yml` runs them weekly,
+Mondays at 05:23 UTC, plus on demand via `workflow_dispatch`. That scheduled
+run is what DRIFT-005 asks for: the mocked tests are written from the same
+assumption as the code and cannot notice when the source changes its format.
+
+Run them by hand:
     pytest tests/test_live.py -m live -v
 """
 

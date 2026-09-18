@@ -382,16 +382,37 @@ activity on this pull request», und die `id` blieb innerhalb eines Laufs
 stabil — beobachtet wurde aber auf beiden PRs nur je **ein** Lauf, das
 Überschreiben also nur innerhalb eines Lebenszyklus (`Running` → `Completed`).
 Und ob ein blosser Push einen Review auslöst: Der Infokasten listet nur «open
-a PR for review», «mark a draft as ready» und «@codex review». Eine Messung am
-18.9.2026 stützt ihn ausnahmsweise — nach dem Push von `ee0df1f` auf den
-offenen PR #76 stand die Tabelle eine Minute später unverändert auf
-`✅ Completed` für den **vorherigen** Commit `4dc4e8f`. Eine einzelne Ablesung
-kurz nach dem Push schliesst einen verzögerten Lauf nicht aus; als Auslöser
-gilt ein Push bis auf Weiteres nicht.
+a PR for review», «mark a draft as ready» und «@codex review» — gemessen ist es
+nicht.
+
+Hier stand zwei Fassungen lang eine Messung, die keine war: Nach drei Pushes
+auf den offenen PR #76 (`ee0df1f`, `d792650`, `ea6257e`) blieb die Tabelle auf
+`✅ Completed` für den **vorherigen** Commit `4dc4e8f` stehen, und daraus war
+geschlossen worden, ein Push löse keinen Review aus. Das Kontingent war zu
+diesem Zeitpunkt aber bereits erschöpft: belegt spätestens für 06:38:37Z, und
+wann es eintrat, ist offen — gut möglich, dass der Review von `4dc4e8f` selbst
+es verbrauchte, der um 06:36:36Z endete. Der erste Push lag dazwischen, die
+beiden anderen danach.
+
+**Ein Prüfer, der ohnehin nicht antworten kann, misst nichts.** Es war also
+nicht «Push löst nicht aus» gemessen, sondern «ein erschöpftes Kontingent
+antwortet nicht» — dasselbe wie die 39 Repos mit «Label fehlt» weiter oben, nur
+in einem anderen Werkzeug: die eigene Erschöpfung gemessen und für einen Befund
+über die Quelle gehalten. Es fehlte die Positivkontrolle.
+
+Wie die Messung gehen müsste: erst durch einen echten Lauf zeigen, dass Codex
+antwortfähig ist — ein PR auf «ready», bis `✅ Completed` dasteht —, dann einen
+zweiten Commit pushen und den Commit **in der Tabelle** lesen. Bleibt er auf
+dem alten Stand, sagt das etwas über Pushes. Ohne den vorangegangenen
+erfolgreichen Lauf sagt es nichts.
 
 Der Reihenfolge wegen: Beide Sätze standen hier schon einmal als Tatsache, in
 derselben Fassung, die den Fehler unten korrigierte. Wer eine Regel
-zurechtrückt, baut dabei gern die nächste unbelegte ein.
+zurechtrückt, baut dabei gern die nächste unbelegte ein. Und der zweite Anlauf
+war auch noch nicht der letzte: Er ersetzte den unbelegten Satz durch eine
+Messung ohne Positivkontrolle — eine Fehlerform, die schon zweimal in dieser
+Datei steht, hier aber nicht wiedererkannt wurde, weil sie diesmal nicht von
+einem Statuscode kam, sondern von einem ausbleibenden Kommentar.
 
 Diese Fassung ist die zweite. Die erste machte `updated_at` zur Erkennungsregel
 und behauptete, «Codex hat nichts geschrieben» und «Codex war noch nicht fertig»

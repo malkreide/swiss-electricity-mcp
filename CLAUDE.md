@@ -686,6 +686,11 @@ und ist hier nicht aus der API belegt; die Spanne ready→Merge ist also rund dr
 Sekunden, aber nicht auf die Sekunde gemessen. Die beiden anderen Zeitpunkte
 sind es.
 
+Sieben Minuten später dasselbe auf PR #85, nur noch enger: `merged_at`
+14:44:21Z und das `created_at` der Meldung 14:44:21Z — **dieselbe Sekunde**.
+Zwei Fälle also, und der zweite zeigt, dass es keine Frage von Sekunden
+Vorsprung ist: Der geschlossene PR nimmt die Meldung entgegen, Punkt.
+
 Das ist **kein vierter Beleg** für den Satz oben, und der Unterschied ist der
 ganze Punkt: Dort läuft ein Review weiter, hier lief nie einer. Gemeinsam ist
 beiden nur, dass ein geschlossener PR weiterhin beschrieben wird; die Aussage

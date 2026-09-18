@@ -265,10 +265,17 @@ nächsten Mal zu achten ist.
 
 **Die Meldung kommt schnell.** Zwischen Auslöser und Absage lagen 2 bis 10
 Sekunden (2 s auf #77, 5 s auf #78, 2 s auf #79, 3 s auf `bakom-mcp` #97,
-10 s auf #76). Ein echter Lauf brauchte dagegen acht Sekunden bis
-zur `🔄 Running`-Tabelle und danach 67 bis 80 Sekunden bis `✅ Completed`. Wer
+10 s auf #76). Ein echter Lauf brauchte dagegen 6 bis 8 Sekunden bis
+zur `🔄 Running`-Tabelle und danach 67 bis 128 Sekunden bis `✅ Completed`. Wer
 binnen weniger Sekunden einen Bot-Kommentar sieht, hat eher eine Absage vor
 sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
+
+**Die Laufdauer taugt nicht als Schwelle.** Sie stand an einem einzigen Tag
+nacheinander auf 73–80, 71–80, 67–80 und schliesslich **67–128** Sekunden: Der
+Lauf auf PR #82 brauchte 128 s und hat das Maximum fast verdoppelt. Dreimal in
+einem Tag nach aussen korrigiert — die Zahl beschreibt die bisher gesehenen
+Läufe, nicht das System. Wer daraus eine Regel macht («länger als X heisst
+hängengeblieben»), misst seine eigene Stichprobe.
 
 **Und sie wechselt den Zustellweg.** Am 18.9. kam sie um 06:38:37Z als
 Review-Kommentar im Thread und um 06:54:43Z als gewöhnlicher Issue-Kommentar.
@@ -333,10 +340,10 @@ ohne dass jemand hineingesehen hat, und am 22.8. noch einmal 43.
   die Meldung und in keinem die Reaktion. Der Kasten ist keine Quelle. Am
   18.9.2026 behauptete er auf `swiss-electricity-mcp` PR #75 zusätzlich eine
   Reaktion *während* des Laufs («reacts with 👀 while any review is running»);
-  gemessen wurde `reactions.total_count: 0` in **allen zehn** Ablesungen des
-  Tages. Entscheidend ist nicht die Zahl, sondern welche darunter sind: zwei
+  gemessen wurde `reactions.total_count: 0` in **allen elf** Ablesungen des
+  Tages. Entscheidend ist nicht die Zahl, sondern welche darunter sind: drei
   **echte** Läufe im Zustand `🔄 Running` (dort behauptet der Kasten 👀) und
-  drei **echte** Läufe im Zustand `✅ Completed` ohne Befund (dort behauptet er
+  vier **echte** Läufe im Zustand `✅ Completed` ohne Befund (dort behauptet er
   👍). Beide Behauptungen sind damit genau in den Zuständen widerlegt, für die
   sie aufgestellt werden — nicht bloss an Absagen, wo ohnehin nichts zu
   erwarten wäre.
@@ -506,10 +513,11 @@ zuerst als offene Frage. Vier beobachtete Läufe am 18.9. ordnen sich sauber:
 | #76 | ein P2-Befund | **Review-Objekt** plus Tabelle |
 | #80 | kein Befund | nur die Tabelle auf `✅ Completed` |
 | #81 | kein Befund | nur die Tabelle auf `✅ Completed` |
+| #82 | kein Befund | nur die Tabelle auf `✅ Completed` |
 
-Die «Swish!»-Meldung kam in **keinem** der vier. Das stützt deutlich, dass
+Die «Swish!»-Meldung kam in **keinem** der fünf. Das stützt deutlich, dass
 diese Codex-Fassung sie durch die Tabelle ersetzt hat — bewiesen ist es nicht:
-Vier Läufe an einem Tag in einem Repo schliessen nicht aus, dass beide Formen
+Fünf Läufe an einem Tag in einem Repo schliessen nicht aus, dass beide Formen
 nebeneinander existieren und die eine hier nur nicht auftrat. Praktisch heisst
 das trotzdem: Ein `✅ Completed` **ohne** Review-Objekt ist hier das Signal für
 «geprüft, nichts gefunden» — und wer weiterhin auf die «Swish!»-Zeile wartet,

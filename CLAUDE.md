@@ -268,18 +268,26 @@ nächsten Mal zu achten ist.
 **Die Meldung kommt schnell.** Zwischen Auslöser und Absage lagen 2 bis 10
 Sekunden (2 s auf #77, 5 s auf #78, 2 s auf #79, 3 s auf `bakom-mcp` #97,
 10 s auf #76, 5 s auf #84). Ein echter Lauf brauchte dagegen 6 bis 8 Sekunden
-bis zur `🔄 Running`-Tabelle und danach 67 bis 723 Sekunden bis `✅ Completed`. Wer
+bis zur `🔄 Running`-Tabelle und danach 45 bis 723 Sekunden bis `✅ Completed`. Wer
 binnen weniger Sekunden einen Bot-Kommentar sieht, hat eher eine Absage vor
 sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
 
 **Die Laufdauer taugt nicht als Schwelle.** Sie stand an einem einzigen Tag
-nacheinander auf 73–80, 71–80, 67–80, 67–128 und schliesslich **67–723**
-Sekunden. Zuerst verdoppelte der Lauf auf PR #82 mit 128 s das Maximum fast,
-dann brauchte der auf PR #83 **zwölf Minuten** — das Fünffache davon, und mehr
-als das Zehnfache der Untergrenze. Viermal an einem Tag nach aussen korrigiert,
-jedes Mal mit demselben Ergebnis: Die Zahl beschreibt die bisher gesehenen
-Läufe, nicht das System. Wer daraus eine Regel macht («länger als X heisst
-hängengeblieben»), misst seine eigene Stichprobe.
+nacheinander auf 73–80, 71–80, 67–80, 67–128, 67–723 und schliesslich
+**45–723** Sekunden. Zuerst verdoppelte der Lauf auf PR #82 mit 128 s das
+Maximum fast, dann brauchte der auf PR #83 **zwölf Minuten** — das Fünffache
+davon. Und der Lauf auf PR #86 lief in **45 Sekunden** durch und riss die
+Spanne nach *unten* auf.
+
+Das ist der eigentliche Punkt: **Beide Enden wandern, und zwar abwechselnd.**
+Die Untergrenze fiel dreimal (73 → 71 → 67 → 45), die Obergrenze stieg zweimal
+(80 → 128 → 723), und zwar verschränkt: erst zwei Korrekturen nach unten, dann
+zwei nach oben, dann wieder eine nach unten. Wer nach den zwei Sprüngen nach
+oben glaubt, wenigstens der untere Wert habe sich gesetzt, hat die beiden
+Abwärtskorrekturen davor vergessen. Fünfmal an einem Tag korrigiert, jedes Mal
+mit demselben Ergebnis: Die Zahl beschreibt die bisher gesehenen Läufe, nicht
+das System. Wer daraus eine Regel macht («länger als X heisst hängengeblieben»,
+«kürzer als Y kann kein echter Lauf sein»), misst seine eigene Stichprobe.
 
 Beim Lauf auf #83 war das keine Theorie. Nach neuneinhalb Minuten stand die
 Tabelle unverändert auf `🔄 Running`, `updated_at` noch auf der Sekunde des
@@ -322,10 +330,15 @@ dieser Beobachtungen.
 Sieben Minuten später, um 14:44:21Z, kam auf PR #85 dieselbe Meldung. Das ist
 ein **zweiter Beobachtungspunkt, keine Dauer** — und der Reflex, aus 14:37:35Z
 und 14:44:21Z «mindestens sieben Minuten» zu machen, ist derselbe, den die
-Augustrechnung weiter unten schon einmal falsch gemacht hat. Die obere Grenze
-dieser zweiten Sperre ist **offen**: Der erste Erfolg danach wurde nicht
-beobachtet, und ohne ihn lässt sie sich nicht schliessen. Von der ersten Sperre
-des Tages unterscheidet sie genau das.
+Augustrechnung weiter unten schon einmal falsch gemacht hat.
+
+**Und acht Minuten danach lief wieder einer.** Um 14:52:32Z startete auf PR #86
+ein echter Review, 45 Sekunden später stand er auf `✅ Completed`. Auch die
+zweite Sperre ist damit eingegrenzt: **zwischen 14:44:21Z und 14:52:32Z**.
+Zwei Sperren an einem Tag, beide geschlossen, keine davon als Dauer — und
+beide nur deshalb, weil neben den Fehlschlägen auch der erste Erfolg notiert
+wurde. Das ist genau der Handgriff, der dem Augustfall fehlt, wo die Rechnung
+bis heute offen ist.
 
 **Die Untergrenze ist der Start des letzten Laufs, nicht sein Ende.** Beim
 Aufschreiben stand hier zuerst 13:26:41Z, der Zeitpunkt, an dem der Lauf auf
@@ -611,7 +624,7 @@ einer, der stattgefunden hat. Dieselbe Verwechslung wie bei `lotId` und beim
 über die *Quelle* aussagt.
 
 Ob `✅ Completed` ohne Begleitkommentar «kein Befund» heisst, stand hier
-zuerst als offene Frage. Sechs beobachtete Läufe am 18.9. ordnen sich sauber:
+zuerst als offene Frage. Sieben beobachtete Läufe am 18.9. ordnen sich sauber:
 
 | PR | Ausgang | Was kam |
 |---|---|---|
@@ -621,10 +634,11 @@ zuerst als offene Frage. Sechs beobachtete Läufe am 18.9. ordnen sich sauber:
 | #81 | kein Befund | nur die Tabelle auf `✅ Completed` |
 | #82 | kein Befund | nur die Tabelle auf `✅ Completed` |
 | #83 | ein P2-Befund | **Review-Objekt** plus Tabelle |
+| #86 | kein Befund | nur die Tabelle auf `✅ Completed` |
 
-Die «Swish!»-Meldung kam in **keinem** der sechs. Das stützt deutlich, dass
+Die «Swish!»-Meldung kam in **keinem** der sieben. Das stützt deutlich, dass
 diese Codex-Fassung sie durch die Tabelle ersetzt hat — bewiesen ist es nicht:
-Sechs Läufe an einem Tag in einem Repo schliessen nicht aus, dass beide Formen
+Sieben Läufe an einem Tag in einem Repo schliessen nicht aus, dass beide Formen
 nebeneinander existieren und die eine hier nur nicht auftrat. Praktisch heisst
 das trotzdem: Ein `✅ Completed` **ohne** Review-Objekt ist hier das Signal für
 «geprüft, nichts gefunden» — und wer weiterhin auf die «Swish!»-Zeile wartet,
@@ -673,11 +687,30 @@ bereits in `main` steht. Am selben Tag ein zweites Mal auf PR #80: ready
 Sekunde vor** dem Start, und der Lauf ging trotzdem bis `✅ Completed` durch.
 Ein drittes Mal auf PR #81: ready 12:49:01Z, gemergt 12:49:04Z, Review-Start
 12:49:08Z — vier Sekunden nach dem Merge angelaufen, 67 Sekunden später fertig.
-Drei Belege an drei PRs: Der Merge beendet den Lauf nicht, er nimmt ihm nur die
+Ein viertes Mal auf PR #86: gemergt 14:52:29Z, Review-Start 14:52:32Z — drei
+Sekunden nach dem Merge angelaufen, 45 Sekunden später fertig, ohne Befund.
+Vier Belege an vier PRs: Der Merge beendet den Lauf nicht, er nimmt ihm nur die
 Wirkung. Zweitens: **Wer eine Minute nach dem Merge nachsieht,
 liest womöglich `🔄 Running` und hält es für Schweigen.** Das ist der
 praktische Grund für die Status-Regel oben: nachfassen, bis ein Endzustand
 dasteht.
+
+**Und eine Stufe früher gibt es dieselbe Falle noch einmal.** Auf PR #86 kamen
+alle drei Abfragen leer zurück — `get_comments`, `get_reviews`,
+`get_review_comments`. Das las sich wie ein neuer, unbekannter Fall: Auslöser
+angenommen, und Codex sagt gar nichts. Tatsächlich hatte der Lauf um 14:52:32Z
+begonnen (`since` der Tabelle) und die Tabelle erschien um 14:52:34Z
+(`created_at`). Die Abfrage fiel genau in diese zwei Sekunden.
+
+Zwischen dem Start eines Laufs und dem Erscheinen seiner Tabelle liegen rund
+**zwei Sekunden**; beide Zeitpunkte stehen in der API, der eine im `since` der
+Tabelle, der andere in ihrem `created_at`. «Es steht nichts da» ist deshalb
+erst eine Aussage, wenn seit dem Auslöser mehr Zeit vergangen ist als Start
+plus Schreiben zusammen — und der Auslöserzeitpunkt selbst ist oft nur als
+Webhook-Zustellung bekannt, also nicht sekundengenau. Wer früher hinsieht,
+misst seine eigene Ungeduld. Die Versuchung ist dabei grösser als bei
+`🔄 Running`: Ein leeres Ergebnis sieht nach einem Befund aus, ein
+Zwischenstand wenigstens nach einem Zwischenstand.
 
 **Auch die Absage erreicht den geschlossenen PR.** Am 18.9. auf PR #84:
 `merged_at` 14:37:33Z, Kontingent-Meldung 14:37:35Z — zwei Sekunden **nach**

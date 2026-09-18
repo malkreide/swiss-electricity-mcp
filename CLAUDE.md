@@ -330,10 +330,29 @@ Neunzig Sekunden später stand in **demselben** Kommentar — gleiche `id`
 Das ist die gefährlichste der vier, weil sie als einzige ihre Bedeutung
 *ändert*, ohne dass sich Zähler, `id` oder `created_at` bewegen. Ein Blick
 während des Laufs und ein Blick danach liefern denselben Kommentar mit
-entgegengesetzter Aussage. **Also `updated_at` mitlesen und den Befund datieren**
-— «Codex hat nichts geschrieben» und «Codex war noch nicht fertig» sehen in
-einer Momentaufnahme identisch aus, und nur der Zeitstempel trennt sie.
-`created_at` hilft dabei nicht: es bleibt beim ersten Schreiben stehen.
+entgegengesetzter Aussage.
+
+**Erkannt wird das am Status-Feld, nicht am Zeitstempel: nachfassen, bis ein
+Endzustand dasteht.** `🔄 Running` gegen `✅ Completed` ist die Unterscheidung;
+`updated_at` sagt nur, dass der Kommentar überschrieben *wurde*, nicht wohin.
+Ein neuer Auslöser — ein weiterer Push, ein «@codex review» — setzt dieselbe
+Tabelle wieder auf `🔄 Running` und bewegt `updated_at` ein zweites Mal. Wer
+die Bewegung für «fertig» nimmt, liest ein Rücksetzen als Abschluss.
+
+`updated_at` behält eine schmalere, richtige Aufgabe: es **datiert** eine
+Momentaufnahme. Wer die Tabelle abschreibt — in eine Notiz, einen Bericht, eine
+Statuszeile —, schreibt einen Zwischenstand ab, und ohne den Zeitstempel daneben
+steht später ein Urteil, das nie eines war. `created_at` leistet auch das nicht:
+es bleibt beim ersten Schreiben stehen.
+
+Diese Fassung ist die zweite. Die erste machte `updated_at` zur Erkennungsregel
+und behauptete, «Codex hat nichts geschrieben» und «Codex war noch nicht fertig»
+seien nur am Zeitstempel zu trennen — beides falsch: Die beiden Fälle trennt
+schon, ob überhaupt ein Kommentar da ist, und ein bewegter Zeitstempel belegt
+keinen Endzustand. Aufgefallen ist es durch einen Codex-Review (P2) auf
+`swiss-electricity-mcp` PR #76 — also auf genau dem PR, der diesen Abschnitt
+einführte. Der Abschnitt über die Grenzen einer Momentaufnahme hatte selbst eine
+Momentaufnahme zur Regel erhoben.
 
 Die Tabelle ist **kein fünfter Grund fürs Schweigen** — genau andersherum: sie
 ist der Beleg, dass er hingesehen *hat*, mitsamt Commit-SHA und Auslöser. Beim
@@ -392,7 +411,8 @@ Review nicht ab.** Codex lief auf dem geschlossenen PR zu Ende, das Ergebnis ist
 also nachlesbar — nur gated es nichts mehr, und ein Befund träfe Code, der
 bereits in `main` steht. Zweitens: **Wer eine Minute nach dem Merge nachsieht,
 liest womöglich `🔄 Running` und hält es für Schweigen.** Das ist der
-praktische Grund für die `updated_at`-Regel oben.
+praktische Grund für die Status-Regel oben: nachfassen, bis ein Endzustand
+dasteht.
 
 Das Kontingent hängt am Konto, nicht am Repo, und Code-Reviews haben einen
 eigenen Topf — nur GitHub-getriggerte Reviews zählen hinein. ChatGPT-Pläne

@@ -226,9 +226,46 @@ You have reached your Codex usage limits. You can see your limits in the
 [Codex usage dashboard](https://chatgpt.com/codex/cloud/settings/usage).
 ```
 
-Ohne «for code reviews», dafür mit Link. Wer auf die obere Zeichenkette
-prüft — und das ist die naheliegende Automatisierung —, übersieht die untere.
-Auf `usage limits` prüfen, nicht auf den ganzen Satz.
+Sechzehn Minuten später, auf PR #77 desselben Repos, eine **dritte** Fassung:
+
+```
+You have reached your Codex usage limits for code reviews. You can see your
+limits in the [Codex usage dashboard](https://chatgpt.com/codex/cloud/settings/usage).
+```
+
+Wer auf eine dieser Zeichenketten prüft — und das ist die naheliegende
+Automatisierung —, übersieht die anderen. **Auf `usage limits` prüfen, nicht
+auf den ganzen Satz.**
+
+Die drei Fassungen unterscheiden sich auf **zwei** Achsen, und nur eine davon
+trägt Bedeutung:
+
+- *Der Dashboard-Satz* fehlt nur in der Fassung vom 21.8. und steht in beiden
+  vom 18.9. Das sieht nach einer Vorlagenänderung zwischen den Daten aus, nicht
+  nach einer Aussage.
+- *«for code reviews»* steht dort, wo ein **Code-Review** abgelehnt wurde
+  (21.8. nach Review-Auslösern; 18.9. um 06:54:43Z, zwei Sekunden nachdem PR #77
+  von Draft auf ready ging), und fehlt dort, wo etwas **anderes** abgelehnt
+  wurde (18.9. um 06:38:37Z, im Review-Thread nach einer Antwort). Drei
+  Beobachtungen, alle drei konsistent.
+
+Falls das trägt, sagt der Zusatz mit, *welcher* Topf leer ist — Code-Reviews
+haben laut Codex einen eigenen. Und er stützt nebenbei die offene Frage weiter
+unten, was die Thread-Meldung ausgelöst hat: Ohne «for code reviews» war es
+offenbar kein Review-Versuch, sondern der Versuch, auf die Antwort zu
+antworten. Drei Beobachtungen sind kein Beleg, aber sie zeigen, worauf beim
+nächsten Mal zu achten ist.
+
+**Die Meldung kommt schnell.** Zwei Sekunden nach dem Auslöser auf PR #77,
+zehn Sekunden auf PR #76. Ein echter Lauf brauchte dagegen acht Sekunden bis
+zur `🔄 Running`-Tabelle und danach 73 bis 80 Sekunden bis `✅ Completed`. Wer
+binnen weniger Sekunden einen Bot-Kommentar sieht, hat eher eine Absage vor
+sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
+
+**Und sie wechselt den Zustellweg.** Am 18.9. kam sie um 06:38:37Z als
+Review-Kommentar im Thread und um 06:54:43Z als gewöhnlicher Issue-Kommentar.
+Zwei Meldungen desselben Typs, sechzehn Minuten auseinander, in zwei
+verschiedenen Abfragen — deshalb die drei Abfragen weiter unten.
 
 Wie lange die Sperre dauerte, geben die Beobachtungen nur als Spanne her. Vier
 Zeitpunkte sind belegt: letzter gelungener Review am 21.8. um 08:41, erste

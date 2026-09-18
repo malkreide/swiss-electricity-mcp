@@ -243,11 +243,18 @@ trägt Bedeutung:
 - *Der Dashboard-Satz* fehlt nur in der Fassung vom 21.8. und steht in beiden
   vom 18.9. Das sieht nach einer Vorlagenänderung zwischen den Daten aus, nicht
   nach einer Aussage.
-- *«for code reviews»* steht dort, wo ein **Code-Review** abgelehnt wurde
-  (21.8. nach Review-Auslösern; 18.9. um 06:54:43Z, zwei Sekunden nachdem PR #77
-  von Draft auf ready ging), und fehlt dort, wo etwas **anderes** abgelehnt
-  wurde (18.9. um 06:38:37Z, im Review-Thread nach einer Antwort). Drei
-  Beobachtungen, alle drei konsistent.
+- *«for code reviews»* steht dort, wo ein **Code-Review** abgelehnt wurde, und
+  fehlt dort, wo etwas **anderes** abgelehnt wurde. Sechs Beobachtungen, alle
+  konsistent:
+
+  | Zeit (UTC) | Anlass | Zusatz |
+  |---|---|---|
+  | 21.8. | Review-Auslöser, 30 Repos | ja |
+  | 18.9. 06:38:37 | Antwort in einem Review-Thread | **nein** |
+  | 18.9. 06:54:43 | `swiss-electricity-mcp` #77 auf ready | ja |
+  | 18.9. 07:01:59 | `swiss-electricity-mcp` #78 auf ready | ja |
+  | 18.9. 07:57:05 | `swiss-electricity-mcp` #79 auf ready | ja |
+  | 18.9. 08:33:16 | `bakom-mcp` #97 auf ready | ja |
 
 Falls das trägt, sagt der Zusatz mit, *welcher* Topf leer ist — Code-Reviews
 haben laut Codex einen eigenen. Und er stützt nebenbei die offene Frage weiter
@@ -256,8 +263,9 @@ offenbar kein Review-Versuch, sondern der Versuch, auf die Antwort zu
 antworten. Drei Beobachtungen sind kein Beleg, aber sie zeigen, worauf beim
 nächsten Mal zu achten ist.
 
-**Die Meldung kommt schnell.** Zwei Sekunden nach dem Auslöser auf PR #77,
-zehn Sekunden auf PR #76. Ein echter Lauf brauchte dagegen acht Sekunden bis
+**Die Meldung kommt schnell.** Zwischen Auslöser und Absage lagen 2 bis 10
+Sekunden (2 s auf #77, 5 s auf #78, 2 s auf #79, 3 s auf `bakom-mcp` #97,
+10 s auf #76). Ein echter Lauf brauchte dagegen acht Sekunden bis
 zur `🔄 Running`-Tabelle und danach 73 bis 80 Sekunden bis `✅ Completed`. Wer
 binnen weniger Sekunden einen Bot-Kommentar sieht, hat eher eine Absage vor
 sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
@@ -266,6 +274,14 @@ sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
 Review-Kommentar im Thread und um 06:54:43Z als gewöhnlicher Issue-Kommentar.
 Zwei Meldungen desselben Typs, sechzehn Minuten auseinander, in zwei
 verschiedenen Abfragen — deshalb die drei Abfragen weiter unten.
+
+**Fünf belegte Sperrzeitpunkte am 18.9.**, über zwei Repos: 06:38:37Z,
+06:54:43Z, 07:01:59Z, 07:57:05Z und 08:33:16Z. Das sind
+**Beobachtungspunkte, keine Dauer.** Zwischen ihnen wurde nicht gemessen, und
+der Abstand zweier Fehlschläge ist keine Untergrenze einer einzelnen Sperre —
+dieselbe Rechnung wie bei der Augustsperre weiter oben, und derselbe Fehler,
+wenn man sie unterlässt. Jeder der fünf Punkte ist zugleich eine
+fehlgeschlagene Positivkontrolle: An keinem lief ein Review an.
 
 Wie lange die Sperre dauerte, geben die Beobachtungen nur als Spanne her. Vier
 Zeitpunkte sind belegt: letzter gelungener Review am 21.8. um 08:41, erste
@@ -308,9 +324,10 @@ ohne dass jemand hineingesehen hat, und am 22.8. noch einmal 43.
   die Meldung und in keinem die Reaktion. Der Kasten ist keine Quelle. Am
   18.9.2026 behauptete er auf `swiss-electricity-mcp` PR #75 zusätzlich eine
   Reaktion *während* des Laufs («reacts with 👀 while any review is running»);
-  gemessen wurde zweimal `reactions.total_count: 0` — einmal bei laufendem,
-  einmal bei fertigem Review. Beide Reaktions-Behauptungen des Kastens sind
-  damit unabhängig voneinander widerlegt.
+  gemessen wurde `reactions.total_count: 0` in **allen sieben** Ablesungen des
+  Tages — bei laufendem Review, bei fertigem und bei jeder der sechs Absagen.
+  Beide Reaktions-Behauptungen des Kastens sind damit unabhängig voneinander
+  widerlegt.
 - **Der PR ist ein Draft** — darauf läuft Codex nicht an.
 - **Das Kontingent ist weg** — dann schreibt er die Meldung oben.
 - **Für das Repo fehlt eine Environment** — dann schreibt er:
@@ -520,7 +537,12 @@ liest womöglich `🔄 Running` und hält es für Schweigen.** Das ist der
 praktische Grund für die Status-Regel oben: nachfassen, bis ein Endzustand
 dasteht.
 
-Das Kontingent hängt am Konto, nicht am Repo, und Code-Reviews haben einen
+Das Kontingent hängt am Konto, nicht am Repo — am 18.9. erstmals an zwei
+Repos **derselben** Sperre nachgemessen: `swiss-electricity-mcp` von 06:38:37Z
+bis 07:57:05Z und `bakom-mcp` um 08:33:16Z, mit wortgleicher Meldung. Das
+**stützt** den Satz, beweist ihn aber nicht: Ob `bakom-mcp` an jenem Tag eigene
+Codex-Aktivität hatte, wurde nicht geprüft, ein separat erschöpfter eigener
+Topf ist also nicht ausgeschlossen. Und Code-Reviews haben einen
 eigenen Topf — nur GitHub-getriggerte Reviews zählen hinein. ChatGPT-Pläne
 fahren ein rollendes Fünf-Stunden-Fenster plus Wochenlimits; welches greift,
 steht im Codex-Dashboard. Welches hier griff, ist **offen**. Die Lücke oben

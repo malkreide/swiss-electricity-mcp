@@ -18,7 +18,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from . import __version__
+from . import HOMEPAGE, __version__
 from .models import (
     ATTRIBUTION_BFE,
     ATTRIBUTION_ELCOM,
@@ -41,9 +41,7 @@ ELCOM_CUBE_CANTON = "https://energy.ld.admin.ch/elcom/electricityprice-canton"
 OPENDATA_SWISS_CKAN = "https://opendata.swiss/api/3/action"
 ZURICH_OGD_CKAN = "https://data.stadt-zuerich.ch/api/3/action"
 
-DEFAULT_USER_AGENT = (
-    f"swiss-electricity-mcp/{__version__} (+https://github.com/malkreide/swiss-electricity-mcp)"
-)
+DEFAULT_USER_AGENT = f"swiss-electricity-mcp/{__version__} (+{HOMEPAGE})"
 DEFAULT_TIMEOUT = 30.0
 MAX_RETRIES = 3
 BACKOFF_BASE = 2

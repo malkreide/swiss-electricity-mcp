@@ -241,7 +241,38 @@ that current clients actually negotiate free to drift.
 **Update policy.** When the gate fails, do not edit the constant blindly: read
 the spec changelog between the two revisions, verify the server still behaves,
 then move the constant, this section, `README.de.md` and
-[`CHANGELOG.md`](CHANGELOG.md) together.
+[`CHANGELOG.md`](CHANGELOG.md) together. A spec bump is adopted only through an
+explicit `mcp` minor/major bump, recorded in [`CHANGELOG.md`](CHANGELOG.md) and
+verified against the tool-definition lock (`tool-definitions.lock.json`).
+
+### What the server sets natively for `2026-07-28`
+
+The SDK reaching a revision is not the same as a server speaking it. Two
+surfaces the SDK leaves to the server, and what happens when it is left alone:
+
+| Surface | What this server sets | What the SDK does without it |
+|---|---|---|
+| `serverInfo` — stamped into the `_meta` of **every** result, not just the `initialize` reply | `name`, `title`, `version`, `websiteUrl` | Substitutes nothing. An unversioned server reports `"version": ""` to every caller, on both eras and both transports. |
+| `ttlMs` / `cacheScope` on the cacheable methods (SEP-2549) | `300000` ms, scope `public`, on `tools/list`, `server/discover`, `prompts/list`, `resources/list`, `resources/templates/list` | `CacheHint()` defaults to `ttl_ms=0`, `scope="private"` — the wire form of "already stale, never share". Every client then re-lists on every connection. |
+
+`2026-07-28` moved `serverInfo` from a once-per-connection handshake footnote to
+a stamp on the running traffic, which is what makes the empty version worth a
+gate rather than a shrug.
+
+The three **empty** directories carry a hint on purpose. `MCPServer` registers
+their handlers unconditionally and `server/discover` lists `prompts` and
+`resources` among its capabilities, so the surface exists on the wire — it is
+just empty. This server has no way to register a prompt or a resource at
+runtime, so it stays empty for the life of the process, which makes it the
+safest thing here to cache.
+
+Both are measured off a real response rather than read back off the
+constructor: [`tests/test_server_identity.py`](tests/test_server_identity.py)
+checks each identity field separately on each era, and
+[`tests/test_cache_hints.py`](tests/test_cache_hints.py) reads the hints out of
+a live client session. Each has a negative control against a bare
+`MCPServer("kontrolle")` — without it, an assertion that the SDK one day starts
+satisfying by itself would keep reading as proof that *this server* sets it.
 
 ---
 
@@ -309,20 +340,6 @@ Two selection rules are deliberately more than "the first N":
 Where a search is trimmed, `count` keeps its real value: it says how much is
 *not* in the file.
 
-
----
-
-## MCP protocol version
-
-This server is built on the official MCP Python SDK (`mcp[cli]`), pinned to
-`>=1.2.0,<2.0.0`. The MCP protocol version is negotiated by the SDK at the
-`initialize` handshake; the supported spec version tracks the pinned SDK
-(currently MCP spec `2025-11-25`).
-
-**Update policy:** SDK updates arrive as weekly Dependabot PRs. A protocol-spec
-bump is only adopted via an explicit SDK minor/major bump, recorded in
-[`CHANGELOG.md`](CHANGELOG.md), and verified against the tool-definition lock
-(`tool-definitions.lock.json`).
 
 ---
 

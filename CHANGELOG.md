@@ -9,11 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Frischehinweise auf `tools/list` und `server/discover`** (SEP-2549, Spec
-  `2026-07-28`): `ttlMs` 300000, `cacheScope` `public`. Das SDK setzt sonst
-  «sofort veraltet, nie geteilt» und lässt damit jeden Client bei jeder
-  Verbindung neu auflisten — für eine Liste, die beim Import feststeht und für
-  jeden Aufrufer dieselbe ist.
+- **Der Server meldet seine eigene Identität** — `name`, `title`, `version`,
+  `websiteUrl` in `MCPServer(...)`. Vorher stand dort `"version": ""`, an jeden
+  Aufrufer, auf beiden Protokoll-Ären und beiden Transporten. Das SDK setzt
+  bewusst nichts ein (`Server.server_info`: «An unversioned server reports an
+  empty version; the SDK never substitutes its own»), es gab also keinen Wert,
+  der den fehlenden ersetzt hätte.
+
+  Warum es jetzt mehr zählt als früher: bis `2025-11-25` stand `serverInfo`
+  genau einmal pro Verbindung auf der Leitung, in der `initialize`-Antwort.
+  Spec `2026-07-28` stempelt es in das `_meta` **jeder** Antwort — die leere
+  Version stand damit auf jeder einzelnen Zeile des Verkehrs.
+
+  Die Version kommt aus den Metadaten der installierten Distribution (dieselbe
+  Quelle wie der User-Agent), die Adresse aus der neuen Konstante
+  `HOMEPAGE`. Sie war vorher zweimal wörtlich im Quellcode notiert; zwei
+  Literale, die auseinanderlaufen können, ohne dass eines von beiden
+  unplausibel aussieht.
+
+  `tests/test_server_identity.py` misst jedes Feld einzeln und auf jeder Ära,
+  an einer echten Antwort statt am Konstruktor-Argument, mit Negativkontrolle
+  gegen ein blosses `MCPServer("kontrolle")`.
+
+- **Frischehinweise auf allen fünf auflistenden Methoden** (SEP-2549, Spec
+  `2026-07-28`): `ttlMs` 300000, `cacheScope` `public` auf `tools/list`,
+  `server/discover`, `prompts/list`, `resources/list` und
+  `resources/templates/list`. Das SDK setzt sonst «sofort veraltet, nie
+  geteilt» und lässt damit jeden Client bei jeder Verbindung neu auflisten —
+  für Listen, die beim Import feststehen und für jeden Aufrufer dieselben sind.
+
+  Die drei **leeren** Verzeichnisse standen zuerst nicht dabei, mit der
+  Begründung, ein Hinweis beschriebe eine Fläche, die es nicht gibt. Gemessen
+  stimmt das nicht: `MCPServer` registriert ihre Handler unbedingt, alle drei
+  antworten mit HTTP 200 und `[]` statt mit «Methode unbekannt», und
+  `server/discover` führt `prompts` und `resources` in den Capabilities. Die
+  Fläche gibt es also — sie ist bloss leer, und weil dieser Server zur Laufzeit
+  weder Prompt noch Ressource nachregistrieren kann, bleibt sie es. Das ist
+  hier das am sichersten Cachebare, nicht das am wenigsten Belegte.
 
 - **Protokoll-Gate: beide Spec-Aeren gepinnt und geprueft**
   (`tests/test_protocol_version.py`). `mcp` 2.x bedient zwei Aeren ueber
@@ -50,6 +82,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bleiben gruen.
 
 ### Fixed
+
+- **`README.md` beschrieb die Protokollversion zweimal, und die zweite Fassung
+  war falsch.** Unter einer eigenen Überschrift `## MCP protocol version` stand
+  weiterhin, das SDK sei auf `>=1.2.0,<2.0.0` gepinnt und die unterstützte Spec
+  sei `2025-11-25` — während `pyproject.toml` `mcp[cli]>=2.0.0,<3` fordert und
+  der Abschnitt `## MCP Protocol Version` weiter oben beide Ären richtig
+  beschreibt. Zwei Abschnitte, deren Titel sich nur in der Gross-/Kleinschrift
+  unterschieden: beim Nachziehen der einen fiel die andere nicht auf. Die
+  veraltete Fassung ist entfernt, ihre noch gültige Aussage zum Tool-Lock in
+  die Update-Politik des verbleibenden Abschnitts gezogen.
+
+  Der Abschnitts-Extraktor in `tests/test_protocol_version.py` liest jetzt bis
+  zur nächsten Überschrift statt die ersten 2500 Zeichen. Eine feste Länge
+  schneidet still ab, sobald der Abschnitt wächst — eine Zusicherung über
+  etwas dahinter wäre grün geworden, ohne dass jemand etwas geändert hat.
 
 - **Browser-Clients scheiterten am Preflight.** Spec `2026-07-28` routet eine
   Streamable-HTTP-Anfrage über `Mcp-Method`, `Mcp-Name` und

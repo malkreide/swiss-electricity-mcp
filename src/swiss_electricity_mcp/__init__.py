@@ -6,6 +6,14 @@ Part of the Swiss Public Data MCP Portfolio.
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _distribution_version
 
+# Die eine Stelle, an der die Projektadresse steht. Sie geht an zwei Orte, die
+# unterschiedlich aussehen und dasselbe meinen: in den User-Agent gegenueber den
+# Datenquellen und — seit Spec 2026-07-28 — in `serverInfo.websiteUrl`, das der
+# Server in das `_meta` JEDER Antwort stempelt. Zwei Literale waeren zwei
+# Wahrheiten; auseinandergelaufen faellt es an keiner Stelle auf, weil beide
+# fuer sich plausibel bleiben.
+HOMEPAGE = "https://github.com/malkreide/swiss-electricity-mcp"
+
 try:
     # Read the version from the installed distribution metadata, which is built
     # from pyproject.toml. Hand-maintaining the literal here let the numbers

@@ -48,6 +48,7 @@ from mcp.types.version import (
 )
 
 from swiss_electricity_mcp.__main__ import build_http_app
+from swiss_electricity_mcp.server import CACHE_HINTS
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 
@@ -112,6 +113,42 @@ def test_der_pin_ist_eine_datierte_revision_kein_bewegliches_ziel() -> None:
         assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", value), value
 
 
+def _protokoll_abschnitt(name: str, anchor: str) -> str:
+    """Der Abschnitt einer README, von seiner Ueberschrift bis zur naechsten.
+
+    Nicht die ersten N Zeichen: eine feste Laenge schneidet still ab, sobald
+    der Abschnitt waechst, und eine Zusicherung ueber etwas, das hinter dem
+    Schnitt steht, wird dann gruen, ohne dass jemand etwas geaendert haette.
+    """
+    text = (REPO / name).read_text(encoding="utf-8")
+    parts = text.split(anchor, 1)
+    assert len(parts) > 1, f"{name} hat keinen Abschnitt «{anchor}»"
+    body = parts[1]
+    nachfolger = body.find("\n## ")
+    return body if nachfolger == -1 else body[:nachfolger]
+
+
+def test_beide_readmes_nennen_jede_gehinweiste_methode() -> None:
+    """Gegen die Methodenliste im Code, nicht gegen eine Abschrift davon.
+
+    Ein `cache_hints`-Eintrag, den die Doku nicht nennt, ist fuer jeden
+    Betreiber unsichtbar: er sieht auf der Leitung eine TTL, die in keinem Text
+    steht. Die Liste kommt deshalb aus `CACHE_HINTS` — waechst sie, faellt
+    dieser Test, bis beide Sprachen nachgezogen sind.
+    """
+    for name, anchor in README_SECTIONS:
+        body = _protokoll_abschnitt(name, anchor)
+        fehlend = sorted(m for m in CACHE_HINTS if f"`{m}`" not in body)
+        assert not fehlend, f"{name} nennt nicht: {fehlend}"
+
+
+def test_beide_readmes_nennen_den_identitaets_stempel() -> None:
+    """Die zweite Flaeche, die das SDK dem Server ueberlaesst."""
+    for name, anchor in README_SECTIONS:
+        body = _protokoll_abschnitt(name, anchor)
+        assert "serverInfo" in body, f"{name} nennt `serverInfo` nicht"
+
+
 def test_beide_readmes_nennen_dieselben_beiden_revisionen() -> None:
     """Ein Pin, den die Doku anders angibt, ist kein Pin.
 
@@ -120,10 +157,7 @@ def test_beide_readmes_nennen_dieselben_beiden_revisionen() -> None:
     und niemand die andere daneben gelegt hat.
     """
     for name, anchor in README_SECTIONS:
-        text = (REPO / name).read_text(encoding="utf-8")
-        parts = text.split(anchor, 1)
-        assert len(parts) > 1, f"{name} hat keinen Abschnitt «{anchor}»"
-        body = parts[1][:2500]
+        body = _protokoll_abschnitt(name, anchor)
         for value in (DOCUMENTED_HANDSHAKE_VERSION, DOCUMENTED_MODERN_VERSION):
             assert value in body, f"{name} nennt {value} nicht im Abschnitt «{anchor}»"
 

@@ -218,6 +218,18 @@ aufgebraucht — davor echte Reviews, danach in 30 Repos nur noch:
 You have reached your Codex usage limits for code reviews.
 ```
 
+**Der Wortlaut ist nicht stabil.** Am 18.9.2026 lautete dieselbe Meldung auf
+`swiss-electricity-mcp` PR #76:
+
+```
+You have reached your Codex usage limits. You can see your limits in the
+[Codex usage dashboard](https://chatgpt.com/codex/cloud/settings/usage).
+```
+
+Ohne «for code reviews», dafür mit Link. Wer auf die obere Zeichenkette
+prüft — und das ist die naheliegende Automatisierung —, übersieht die untere.
+Auf `usage limits` prüfen, nicht auf den ganzen Satz.
+
 Wie lange die Sperre dauerte, geben die Beobachtungen nur als Spanne her. Vier
 Zeitpunkte sind belegt: letzter gelungener Review am 21.8. um 08:41, erste
 Limit-Meldung um 09:48, letzte beobachtete Limit-Meldung am 22.8. um 11:03,
@@ -290,13 +302,32 @@ ein, den dieser Abschnitt verhindern soll, nur in die andere Richtung.
 sich an der Form: Ein Review **mit** Befund ist ein Review-Objekt
 («💡 Codex Review», mit Commit-Angabe); ein Review **ohne** Befund und die
 beiden Ausfallmeldungen — Kontingent wie Environment — sind gewöhnliche
-Issue-Kommentare und trennen sich nur im Text. Beim Draft gibt es überhaupt
+Issue-Kommentare und trennen sich nur im Text — wobei die beiden
+Ausfallmeldungen auch in einem Review-Thread stehen können, siehe unten. Beim Draft gibt es überhaupt
 nichts, weil Codex nicht anläuft; ein kommentarloser Draft ist deshalb kein
 Beleg, sondern ein nicht durchgeführter Test.
 
-Das sind verschiedene Abfragen — `get_reviews` fürs Objekt, `get_comments` für
-alles andere; wer nur eine nimmt, übersieht den Rest. Genau so ist die
-Limit-Meldung zuerst durchgerutscht.
+Das sind **drei** verschiedene Abfragen, nicht zwei: `get_reviews` fürs Objekt,
+`get_comments` für die Issue-Kommentare und `get_review_comments` für die
+Kommentare *in* einem Review-Thread. Wer nur eine nimmt, übersieht den Rest.
+Genau so ist die Limit-Meldung zuerst durchgerutscht.
+
+**Die dritte Abfrage fehlte hier zwei Fassungen lang**, und die Regel darüber
+war mit ihr falsch: Am 18.9.2026 kam die Kontingent-Meldung auf
+`swiss-electricity-mcp` PR #76 nicht als Issue-Kommentar, sondern als
+Review-Kommentar im Thread des Befundes — auf `CLAUDE.md` Zeile 335, als
+Antwort auf eine Antwort. `get_comments` hätte sie nicht gefunden; dort stand
+zur selben Zeit unverändert die Zusammenfassungstabelle. Die Ausfallmeldungen
+sind also nicht an die Kommentarart gebunden, sondern folgen dem Ort, an dem
+Codex gerade etwas zu sagen versucht.
+
+Was diese Meldung **ausgelöst** hat, ist offen. Sie kam zehn Sekunden nach
+einer Antwort in ihrem Thread, und der Infokasten sagt, Codex könne Fragen
+beantworten («Codex can also answer questions or update the PR») — eine
+Antwort im Thread als Auslöser liegt also nahe. Dagegen steht, dass eine
+zweite Antwort 88 Sekunden später keine weitere Meldung brachte. Beides passt
+auch zu «Codex versucht es nach erschöpftem Kontingent kein zweites Mal».
+Zwei Beobachtungen trennen das nicht.
 
 Der Kommentarzähler allein reicht ohnehin nicht: `comments: 1` kann die
 Befundlos-, die Kontingent-, die Environment-Meldung **oder** die

@@ -14,6 +14,7 @@ am Konstruktor verlorenginge.
 
 from __future__ import annotations
 
+import pytest
 from mcp import Client
 from mcp.server.caching import CACHEABLE_METHODS
 from mcp.server.mcpserver import MCPServer
@@ -41,6 +42,45 @@ async def test_ein_server_ohne_hinweise_sagt_nichts() -> None:
 
     assert result.ttl_ms == 0
     assert result.cache_scope == "private"
+
+
+@pytest.mark.parametrize("lister", ["list_prompts", "list_resources", "list_resource_templates"])
+async def test_die_leeren_verzeichnisse_tragen_dieselbe_ttl(lister: str) -> None:
+    """Leer heisst nicht «gibt es nicht».
+
+    Diese drei Methoden waren hier lange nicht gehinweist, mit der Begruendung,
+    ein Hinweis beschriebe eine Flaeche, die dieser Server gar nicht hat. Die
+    Messung sagt etwas anderes: `MCPServer` registriert die Handler unbedingt,
+    alle drei antworten mit einer leeren Liste statt mit «Methode unbekannt».
+    Die Flaeche gibt es also — und weil dieser Server zur Laufzeit weder Prompt
+    noch Ressource nachregistrieren kann, ist sie die am sichersten cachebare
+    von allen. Ohne Hinweis holt sich jeder Client dreimal pro Verbindung eine
+    Liste ab, die leer bleiben wird.
+
+    Jede der drei einzeln: ein gemeinsamer Aufruf wuerde gruen bleiben, wenn
+    zwei Schluessel im Dict fehlten.
+    """
+    async with Client(mcp) as client:
+        result = await getattr(client, lister)()
+
+    assert result.ttl_ms == LIST_CACHE_TTL_MS, f"{lister} antwortete mit ttlMs={result.ttl_ms}"
+    assert result.cache_scope == "public"
+
+
+@pytest.mark.parametrize("lister", ["list_prompts", "list_resources", "list_resource_templates"])
+async def test_die_leeren_verzeichnisse_sind_wirklich_leer(lister: str) -> None:
+    """Die Voraussetzung des Tests darueber, ausgesprochen.
+
+    «Kann sich nicht mehr aendern» traegt die fuenf Minuten TTL nur, solange
+    nichts registriert ist. Registriert dieser Server eines Tages einen Prompt
+    oder eine Ressource, faellt dieser Test — und dann ist die Begruendung im
+    Kommentar neben `CACHE_HINTS` neu zu schreiben, nicht bloss dieser Test.
+    """
+    async with Client(mcp) as client:
+        result = await getattr(client, lister)()
+
+    entries = getattr(result, lister.removeprefix("list_"), None)
+    assert entries == [], f"{lister} ist nicht mehr leer: {entries}"
 
 
 def test_die_ttl_ist_lang_genug_um_etwas_zu_sagen() -> None:

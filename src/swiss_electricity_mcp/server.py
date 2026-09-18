@@ -22,7 +22,7 @@ from mcp.server.mcpserver import Context, MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-from . import __version__
+from . import HOMEPAGE, __version__
 from .api_client import (
     DASHBOARD_BASE,
     LINDAS_SPARQL,
@@ -127,18 +127,53 @@ async def lifespan(_server: MCPServer):
 # Sobald eine Liste vom Aufrufer abhaengt, muss der Scope im selben Commit auf
 # `private` wechseln.
 #
-# `prompts/list` und `resources/list` bleiben ungesetzt: dieser Server
-# registriert weder Prompts noch Ressourcen, und ein Hinweis darauf beschriebe
-# eine Flaeche, die es nicht gibt.
+# Die drei LEEREN Verzeichnisse stehen hier ebenfalls. Vorher fehlten sie, mit
+# der Begruendung, ein Hinweis beschriebe eine Flaeche, die es nicht gibt —
+# gemessen stimmt das nicht: `MCPServer` registriert die Handler unbedingt,
+# `prompts/list`, `resources/list` und `resources/templates/list` antworten mit
+# HTTP 200 und `[]`, und `server/discover` fuehrt `prompts` und `resources` in
+# den Capabilities. Die Flaeche gibt es also; sie ist bloss leer. Und genau das
+# ist der Fall, der sich am sichersten cachen laesst: dieser Server hat keinen
+# Weg, zur Laufzeit einen Prompt oder eine Ressource nachzuregistrieren, das
+# leere Verzeichnis kann sich im Prozess nicht mehr aendern. Ohne Hinweis holt
+# sich jeder Client dreimal pro Verbindung eine leere Liste ab.
+#
+# Sobald der Server Prompts oder Ressourcen registriert, gilt hier nichts
+# anderes als fuer `tools/list`: dieselbe TTL, derselbe Scope — nur die
+# Begruendung «kann sich nicht mehr aendern» faellt weg und muss durch die
+# Registrierung-beim-Import ersetzt werden.
+#
+# `resources/read` und `prompts/get` bleiben ungesetzt: sie liefern Inhalt,
+# kein Verzeichnis, und dieser Server liefert ihn gar nicht.
 LIST_CACHE_TTL_MS = 300_000
 
+_LIST_CACHE_HINT = CacheHint(ttl_ms=LIST_CACHE_TTL_MS, scope="public")
+
 CACHE_HINTS = {
-    "tools/list": CacheHint(ttl_ms=LIST_CACHE_TTL_MS, scope="public"),
-    "server/discover": CacheHint(ttl_ms=LIST_CACHE_TTL_MS, scope="public"),
+    "tools/list": _LIST_CACHE_HINT,
+    "server/discover": _LIST_CACHE_HINT,
+    "prompts/list": _LIST_CACHE_HINT,
+    "resources/list": _LIST_CACHE_HINT,
+    "resources/templates/list": _LIST_CACHE_HINT,
 }
 
+# Spec 2026-07-28 stempelt `serverInfo` nicht mehr nur in die eine
+# `initialize`-Antwort, sondern in das `_meta` JEDER Antwort. Damit ist die
+# Identitaet keine Handshake-Fussnote mehr, sondern steht auf jeder Zeile des
+# Verkehrs — und `MCPServer` setzt von sich aus nichts ein: ohne `version`
+# meldete dieser Server `"version": ""` an jeden Aufrufer, auf beiden Aeren und
+# beiden Transporten. Das SDK substituiert bewusst nicht seine eigene Version,
+# es gibt also keinen Wert, der den fehlenden ersetzt haette.
+#
+# `title` und `website_url` sind die uebrigen Felder von `Implementation`, die
+# dieser Server ausfuellen kann. Die Version kommt aus den Metadaten der
+# installierten Distribution (siehe `__init__.py`), die Adresse aus `HOMEPAGE` —
+# beides keine zweite Wahrheit. `icons` bleibt leer: es gibt keine.
 mcp = MCPServer(
     name="swiss-electricity-mcp",
+    title="Swiss Electricity Data",
+    version=__version__,
+    website_url=HOMEPAGE,
     cache_hints=CACHE_HINTS,
     instructions=(
         "Swiss electricity data from three official sources: Energiedashboard.ch (BFE) "

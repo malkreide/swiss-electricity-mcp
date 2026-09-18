@@ -165,7 +165,41 @@ Aera frei wandern, die heutige Clients tatsaechlich aushandeln.
 **Update-Politik.** Faellt das Gate, die Konstante nicht blind nachziehen: erst
 das Spec-Changelog zwischen den beiden Revisionen lesen, pruefen, ob sich der
 Server weiterhin richtig verhaelt, dann Konstante, diesen Abschnitt, `README.md`
-und [`CHANGELOG.md`](CHANGELOG.md) gemeinsam bewegen.
+und [`CHANGELOG.md`](CHANGELOG.md) gemeinsam bewegen. Ein Spec-Sprung wird nur
+ueber einen ausdruecklichen Minor-/Major-Bump von `mcp` uebernommen, in
+[`CHANGELOG.md`](CHANGELOG.md) vermerkt und gegen den Tool-Lock
+(`tool-definitions.lock.json`) geprueft.
+
+### Was der Server fuer `2026-07-28` selbst setzt
+
+Dass das SDK eine Revision erreicht, heisst nicht, dass ein Server sie spricht.
+Zwei Flaechen ueberlaesst das SDK dem Server — und was passiert, wenn man sie
+ihm ueberlaesst:
+
+| Flaeche | Was dieser Server setzt | Was das SDK ohne ihn tut |
+|---|---|---|
+| `serverInfo` — gestempelt in das `_meta` **jeder** Antwort, nicht nur in die `initialize`-Antwort | `name`, `title`, `version`, `websiteUrl` | Setzt nichts ein. Ein Server ohne Version meldet `"version": ""` an jeden Aufrufer, auf beiden Aeren und beiden Transporten. |
+| `ttlMs` / `cacheScope` auf den cachebaren Methoden (SEP-2549) | `300000` ms, Scope `public`, auf `tools/list`, `server/discover`, `prompts/list`, `resources/list`, `resources/templates/list` | `CacheHint()` defaultet auf `ttl_ms=0`, `scope="private"` — die Drahtform von «schon veraltet, nie teilen». Jeder Client listet dann bei jeder Verbindung neu auf. |
+
+`2026-07-28` hat `serverInfo` von einer Handshake-Fussnote pro Verbindung zu
+einem Stempel auf dem laufenden Verkehr gemacht. Genau das macht aus der leeren
+Version ein Gate statt eines Achselzuckens.
+
+Die drei **leeren** Verzeichnisse tragen den Hinweis mit Absicht. `MCPServer`
+registriert ihre Handler unbedingt, und `server/discover` fuehrt `prompts` und
+`resources` in den Capabilities — die Flaeche gibt es also auf der Leitung, sie
+ist bloss leer. Dieser Server kann zur Laufzeit weder Prompt noch Ressource
+nachregistrieren; sie bleibt fuer die Lebensdauer des Prozesses leer und ist
+damit das am sichersten Cachebare hier.
+
+Beides an einer echten Antwort gemessen statt am Konstruktor zurueckgelesen:
+[`tests/test_server_identity.py`](tests/test_server_identity.py) prueft jedes
+Identitaetsfeld einzeln und auf jeder Aera,
+[`tests/test_cache_hints.py`](tests/test_cache_hints.py) liest die Hinweise aus
+einer echten Client-Sitzung. Beide fahren eine Negativkontrolle gegen ein
+blosses `MCPServer("kontrolle")` — ohne sie laese sich eine Zusicherung, die
+das SDK eines Tages von selbst erfuellt, weiterhin als Beleg dafuer, dass
+*dieser* Server sie setzt.
 
 ---
 

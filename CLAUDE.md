@@ -266,16 +266,26 @@ nächsten Mal zu achten ist.
 **Die Meldung kommt schnell.** Zwischen Auslöser und Absage lagen 2 bis 10
 Sekunden (2 s auf #77, 5 s auf #78, 2 s auf #79, 3 s auf `bakom-mcp` #97,
 10 s auf #76). Ein echter Lauf brauchte dagegen 6 bis 8 Sekunden bis
-zur `🔄 Running`-Tabelle und danach 67 bis 128 Sekunden bis `✅ Completed`. Wer
+zur `🔄 Running`-Tabelle und danach 67 bis 723 Sekunden bis `✅ Completed`. Wer
 binnen weniger Sekunden einen Bot-Kommentar sieht, hat eher eine Absage vor
 sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
 
 **Die Laufdauer taugt nicht als Schwelle.** Sie stand an einem einzigen Tag
-nacheinander auf 73–80, 71–80, 67–80 und schliesslich **67–128** Sekunden: Der
-Lauf auf PR #82 brauchte 128 s und hat das Maximum fast verdoppelt. Dreimal in
-einem Tag nach aussen korrigiert — die Zahl beschreibt die bisher gesehenen
+nacheinander auf 73–80, 71–80, 67–80, 67–128 und schliesslich **67–723**
+Sekunden. Zuerst verdoppelte der Lauf auf PR #82 mit 128 s das Maximum fast,
+dann brauchte der auf PR #83 **zwölf Minuten** — das Fünffache davon, und mehr
+als das Zehnfache der Untergrenze. Viermal an einem Tag nach aussen korrigiert,
+jedes Mal mit demselben Ergebnis: Die Zahl beschreibt die bisher gesehenen
 Läufe, nicht das System. Wer daraus eine Regel macht («länger als X heisst
 hängengeblieben»), misst seine eigene Stichprobe.
+
+Beim Lauf auf #83 war das keine Theorie. Nach neuneinhalb Minuten stand die
+Tabelle unverändert auf `🔄 Running`, `updated_at` noch auf der Sekunde des
+Anlegens — während auf #75 nach 90 Sekunden längst `✅ Completed` dort stand.
+Die Versuchung, das für einen hängengebliebenen Lauf zu halten und eine neue
+Kategorie aufzumachen, war gross. Zwei Minuten später kam ein vollständiger
+Review mit Befund. **Ein Lauf ist nicht tot, nur weil er länger dauert als der
+längste, den man kennt.**
 
 **Und sie wechselt den Zustellweg.** Am 18.9. kam sie um 06:38:37Z als
 Review-Kommentar im Thread und um 06:54:43Z als gewöhnlicher Issue-Kommentar.
@@ -340,20 +350,25 @@ ohne dass jemand hineingesehen hat, und am 22.8. noch einmal 43.
   die Meldung und in keinem die Reaktion. Der Kasten ist keine Quelle. Am
   18.9.2026 behauptete er auf `swiss-electricity-mcp` PR #75 zusätzlich eine
   Reaktion *während* des Laufs («reacts with 👀 while any review is running»);
-  gemessen wurde `reactions.total_count: 0` in **allen elf** Ablesungen des
-  Tages. Entscheidend ist nicht die Zahl, sondern welche darunter sind: drei
+  gemessen wurde `reactions.total_count: 0` in **jeder** Ablesung des
+  Tages. Entscheidend ist nicht deren Anzahl, sondern welche Zustände
+  darunter sind: vier
   **echte** Läufe im Zustand `🔄 Running` (dort behauptet der Kasten 👀) und
   vier **echte** Läufe im Zustand `✅ Completed` ohne Befund (dort behauptet er
   👍). Beide Behauptungen sind damit genau in den Zuständen widerlegt, für die
   sie aufgestellt werden — nicht bloss an Absagen, wo ohnehin nichts zu
   erwarten wäre.
-- **Der PR ist ein Draft** — darauf läuft Codex nicht an.
+- **Der PR ist ein Draft** — darauf läuft kein Review an. Schweigen ist das
+  aber nicht zwingend, siehe unten.
 - **Das Kontingent ist weg** — dann schreibt er die Meldung oben.
 - **Für das Repo fehlt eine Environment** — dann schreibt er:
 
   ```
   To use Codex here, create an environment for this repo.
   ```
+
+  Der Umkehrschluss gilt nicht: Dieselbe Meldung kam auch dort, wo die
+  Environment nachweislich vorhanden war, siehe unten.
 
 Der vierte kam erst zum Vorschein, als der dritte wegfiel, und das ist kein
 Zufall: Die Prüfungen liegen hintereinander. Dass es diese Reihenfolge ist und
@@ -376,9 +391,11 @@ sich an der Form: Ein Review **mit** Befund ist ein Review-Objekt
 («💡 Codex Review», mit Commit-Angabe); ein Review **ohne** Befund und die
 beiden Ausfallmeldungen — Kontingent wie Environment — sind gewöhnliche
 Issue-Kommentare und trennen sich nur im Text — wobei die beiden
-Ausfallmeldungen auch in einem Review-Thread stehen können, siehe unten. Beim Draft gibt es überhaupt
-nichts, weil Codex nicht anläuft; ein kommentarloser Draft ist deshalb kein
-Beleg, sondern ein nicht durchgeführter Test.
+Ausfallmeldungen auch in einem Review-Thread stehen können, siehe unten.
+Auf einem Draft läuft kein Review an; ein kommentarloser Draft ist deshalb
+kein Beleg, sondern ein nicht
+durchgeführter Test. Dass dort **überhaupt nichts** komme, stimmt allerdings
+nicht — siehe den Abschnitt zur Environment-Meldung.
 
 Das sind **drei** verschiedene Abfragen, nicht zwei: `get_reviews` fürs Objekt,
 `get_comments` für die Issue-Kommentare und `get_review_comments` für die
@@ -448,15 +465,13 @@ Statuszeile —, schreibt einen Zwischenstand ab, und ohne den Zeitstempel daneb
 steht später ein Urteil, das nie eines war. `created_at` leistet auch das nicht:
 es bleibt beim ersten Schreiben stehen.
 
-Zwei Dinge, die hier naheliegen und **nicht gemessen** sind. Ob ein zweiter
-Review denselben Kommentar wiederverwendet und ihn auf `🔄 Running`
-zurücksetzt: Die Kopfzeile sagt «This comment shows the *latest* Codex review
-activity on this pull request», und die `id` blieb innerhalb eines Laufs
-stabil — beobachtet wurde aber auf beiden PRs nur je **ein** Lauf, das
-Überschreiben also nur innerhalb eines Lebenszyklus (`Running` → `Completed`).
-Und ob ein blosser Push einen Review auslöst: Der Infokasten listet nur «open
-a PR for review», «mark a draft as ready» und «@codex review» — gemessen ist es
-nicht.
+Was hier naheliegt und **nicht gemessen** ist: ob ein zweiter Review denselben
+Kommentar wiederverwendet und ihn auf `🔄 Running` zurücksetzt. Die Kopfzeile
+sagt «This comment shows the *latest* Codex review activity on this pull
+request», und die `id` blieb innerhalb eines Laufs stabil — beobachtet wurde
+aber pro PR nur je **ein** Lauf, das Überschreiben also nur innerhalb eines
+Lebenszyklus (`Running` → `Completed`). Die Frage bleibt offen, weil nie ein
+zweiter Lauf auf demselben PR zustande kam.
 
 Hier stand zwei Fassungen lang eine Messung, die keine war: Nach drei Pushes
 auf den offenen PR #76 (`ee0df1f`, `d792650`, `ea6257e`) blieb die Tabelle auf
@@ -473,19 +488,82 @@ antwortet nicht» — dasselbe wie die 39 Repos mit «Label fehlt» weiter oben,
 in einem anderen Werkzeug: die eigene Erschöpfung gemessen und für einen Befund
 über die Quelle gehalten. Es fehlte die Positivkontrolle.
 
-Wie die Messung gehen müsste: erst durch einen echten Lauf zeigen, dass Codex
-antwortfähig ist — ein PR auf «ready», bis `✅ Completed` dasteht —, dann einen
-zweiten Commit pushen und den Commit **in der Tabelle** lesen. Bleibt er auf
-dem alten Stand, sagt das etwas über Pushes. Ohne den vorangegangenen
-erfolgreichen Lauf sagt es nichts.
+**Am 18.9. um 13:07Z ist die Messung dann gelaufen, mit Positivkontrolle, und
+das Ergebnis ist eindeutig: Ein blosser Push löst keinen Review aus.**
 
-Der Reihenfolge wegen: Beide Sätze standen hier schon einmal als Tatsache, in
-derselben Fassung, die den Fehler unten korrigierte. Wer eine Regel
-zurechtrückt, baut dabei gern die nächste unbelegte ein. Und der zweite Anlauf
-war auch noch nicht der letzte: Er ersetzte den unbelegten Satz durch eine
-Messung ohne Positivkontrolle — eine Fehlerform, die schon zweimal in dieser
-Datei steht, hier aber nicht wiedererkannt wurde, weil sie diesmal nicht von
-einem Statuscode kam, sondern von einem ausbleibenden Kommentar.
+Die Anordnung, in dieser Reihenfolge:
+
+| Zeit (UTC) | Schritt |
+|---|---|
+| 13:03:58 | PR #82 auf «ready» |
+| 13:04:05 | Review startet — **Positivkontrolle**: Codex ist antwortfähig |
+| 13:06:13 | `✅ Completed` für Commit `e0118f4`, kein Befund |
+| ~13:07 | Push `e0118f4` → `57ec2f4` auf den **offenen** PR |
+| 13:09:46 | PR gemergt |
+| danach | Tabelle nennt weiterhin `e0118f4`, `updated_at` unverändert 13:06:14Z |
+
+Der Kommentar wurde nach dem Push nicht mehr angefasst — kein neuer Lauf, kein
+Rücksprung auf `🔄 Running`, kein zweiter Kommentar. Damit stimmt der
+Infokasten ausnahmsweise: Ein Push steht nicht auf seiner Auslöser-Liste, und
+er löst auch nichts aus.
+
+**Der Lauf davor allein trägt das nicht** — so stand es hier zuerst, und ein
+Codex-Review (P2) auf PR #83 hat es umgeworfen. Eine Positivkontrolle *vor* dem
+Push belegt Antwortfähigkeit vor dem Push. Sie schliesst nicht aus, dass gerade
+dieser Kontrolllauf den Rest des Kontingents verbrauchte und der Push auf ein
+leeres traf — exakt die Lage, die diese Datei für `4dc4e8f` beschreibt, wo der
+Lauf um 06:36:36Z endete und die Erschöpfung zwei Minuten später belegt war.
+Wer mit einer Vorher-Kontrolle arbeitet, hat den Confounder also nur um einen
+Lauf nach hinten geschoben.
+
+Zwei Belege schliessen die Lücke, und sie sind unabhängig voneinander.
+
+- **Eine Nachher-Kontrolle.** Um 13:14:38Z lief auf PR #83 ein Review an, mit
+  dem Auslöser `Draft marked ready` — nach dem Push von ~13:07 und nach dem
+  Merge von #82. Das Kontingent war danach also da. Was dieser Beleg nicht
+  deckt: die siebeneinhalb Minuten dazwischen. Dass es genau im
+  Zweieinhalb-Minuten-Fenster leer war und bis 13:14 zurückkehrte, ist mit ihm
+  verträglich — nur spricht nichts dafür.
+- **Die Absage bleibt nicht aus.** Das ist der stärkere Beleg, weil er vom
+  Kontingentstand gar nicht abhängt. Ein Auslöser auf leeres Kontingent
+  erzeugte in jedem beobachteten Fall binnen 2 bis 10 Sekunden eine Meldung —
+  fünfmal am 18.9., in 30 Repos am 21.8. Wäre ein Push ein Auslöser, müsste
+  also *eines von beiden* gekommen sein: ein Lauf bei vorhandenem Kontingent
+  oder eine Absage bei leerem. Gekommen ist nichts. Beide Zweige von «Push ist
+  ein Auslöser» sind damit ausgeschlossen, ohne dass man den Kontingentstand
+  kennen muss.
+
+Die Prämisse des zweiten Belegs gehört benannt: Sie ruht auf den *bekannten*
+Auslösern — ready-Umschaltung und Antwort im Thread. Dass ein bislang
+unbekannter Auslöser bei leerem Kontingent stumm bliebe, ist nicht geprüft und
+auch nicht prüfbar, solange man ihn nicht kennt. Der Zirkel ist real, nur
+schmal: Er verlangt einen Auslöser, der sich in beiden Zuständen anders verhält
+als jeder beobachtete.
+
+Und was sie nicht deckt: Das Fenster zwischen Push und Merge betrug rund
+zweieinhalb Minuten. **Jeder** an diesem Tag beobachtete Lauf startete 6 bis
+8 Sekunden nach seinem Auslöser — zuletzt der auf #83, sieben Sekunden nach dem
+Klick auf «ready», und der brauchte danach zwölf Minuten. Die *Start*verzögerung
+ist also stabil, während die Laufdauer es nicht ist; für dieses Fenster zählt
+nur die erste. Ein ausgelöster Lauf wäre damit längst sichtbar
+gewesen — ein stark verzögerter Trigger jenseits dieser zweieinhalb Minuten
+bleibt unbeobachtet.
+
+Der Reihenfolge wegen, und sie ist der eigentliche Lehrsatz dieses Abschnitts:
+**Die Push-Frage wurde viermal beantwortet, dreimal falsch.** Erst als blosse
+Behauptung. Dann als Messung ohne Positivkontrolle — eine Fehlerform, die schon
+zweimal in dieser Datei steht, hier aber nicht wiedererkannt wurde, weil sie
+diesmal nicht von einem Statuscode kam, sondern von einem ausbleibenden
+Kommentar. Dann mit einer Positivkontrolle, die *vor* dem Push lag und den
+Confounder damit nur um einen Lauf verschob; das fiel nicht selbst auf, sondern
+durch den P2-Befund auf PR #83. Erst der vierte Anlauf steht.
+
+Jeder dieser drei Fehlgriffe entstand beim Korrigieren des vorigen. Wer eine
+Regel zurechtrückt, baut dabei gern die nächste unbelegte ein — und je näher
+die Korrektur an der richtigen Antwort liegt, desto schwerer fällt es, die
+verbliebene Lücke noch zu sehen. Der dritte Anlauf sah aus wie sauberes
+Vorgehen: Er benannte seine Positivkontrolle ausdrücklich. Er benannte nur die
+falsche.
 
 Diese Fassung ist die zweite. Die erste machte `updated_at` zur Erkennungsregel
 und behauptete, «Codex hat nichts geschrieben» und «Codex war noch nicht fertig»
@@ -505,7 +583,7 @@ einer, der stattgefunden hat. Dieselbe Verwechslung wie bei `lotId` und beim
 über die *Quelle* aussagt.
 
 Ob `✅ Completed` ohne Begleitkommentar «kein Befund» heisst, stand hier
-zuerst als offene Frage. Vier beobachtete Läufe am 18.9. ordnen sich sauber:
+zuerst als offene Frage. Sechs beobachtete Läufe am 18.9. ordnen sich sauber:
 
 | PR | Ausgang | Was kam |
 |---|---|---|
@@ -514,10 +592,11 @@ zuerst als offene Frage. Vier beobachtete Läufe am 18.9. ordnen sich sauber:
 | #80 | kein Befund | nur die Tabelle auf `✅ Completed` |
 | #81 | kein Befund | nur die Tabelle auf `✅ Completed` |
 | #82 | kein Befund | nur die Tabelle auf `✅ Completed` |
+| #83 | ein P2-Befund | **Review-Objekt** plus Tabelle |
 
-Die «Swish!»-Meldung kam in **keinem** der fünf. Das stützt deutlich, dass
+Die «Swish!»-Meldung kam in **keinem** der sechs. Das stützt deutlich, dass
 diese Codex-Fassung sie durch die Tabelle ersetzt hat — bewiesen ist es nicht:
-Fünf Läufe an einem Tag in einem Repo schliessen nicht aus, dass beide Formen
+Sechs Läufe an einem Tag in einem Repo schliessen nicht aus, dass beide Formen
 nebeneinander existieren und die eine hier nur nicht auftrat. Praktisch heisst
 das trotzdem: Ein `✅ Completed` **ohne** Review-Objekt ist hier das Signal für
 «geprüft, nichts gefunden» — und wer weiterhin auf die «Swish!»-Zeile wartet,
@@ -597,6 +676,54 @@ an, und zwar **je Repo**. Die Meldung sagt es selbst («for this repo»), und am
 Review; in den übrigen Repos lief Codex am selben Morgen durch. Eine
 Environment fürs Konto genügt also nicht — wer eine anlegt und den Rest für
 erledigt hält, mergt weiter Ungeprüftes.
+
+**Die Meldung sagt aber nicht, warum sie kommt.** Am 18.9.2026 um 13:11:34Z
+entstand `swiss-electricity-mcp` PR #83 als **Draft**. Vierzehn Sekunden später,
+um 13:11:48Z, stand dort:
+
+```
+To use Codex here, create an environment for this repo.
+```
+
+Kein Umschalten auf «ready», kein `@codex review`, keine Zusammenfassungstabelle
+— und im selben Repo war gut fünf Minuten vorher ein Review sauber durchgelaufen
+(PR #82, 13:04:05Z bis 13:06:13Z). Die Positivkontrolle kam um 13:14:31Z: PR #83
+auf «ready» gesetzt, sieben Sekunden später startete der Review mit dem Auslöser
+`Draft marked ready`. **Die Environment existiert.** Die Meldung von 13:11:48Z
+stand trotzdem da, und sie steht unverändert im PR — `updated_at` gleich
+`created_at`, niemand hat sie zurückgenommen.
+
+Zwei Gegenproben im selben Repo, beide am selben Vormittag: #81 und #82 waren
+ebenfalls Drafts und trugen **keine** solche Meldung. Sie ist also weder eine
+Eigenschaft des Repos noch eine des Draft-Zustands, sondern etwas
+Vorübergehendes.
+
+Daraus zwei Korrekturen weiter oben in diesem Abschnitt:
+
+- **«Beim Draft gibt es überhaupt nichts» war falsch.** Richtig bleibt, dass auf
+  einem Draft kein Review anläuft — eine Tabelle kam nicht. Codex schreibt dort
+  aber trotzdem. Ein Kommentar auf einem Draft ist deshalb kein Beleg, dass
+  geprüft wurde; genau die umgekehrte Verwechslung wie beim kommentarlosen
+  Draft, und sie fällt leichter, weil ein Kommentar nach Arbeit aussieht.
+- **Von der Environment-Meldung nicht auf eine fehlende Environment
+  schliessen.** Der 23.8. in `swiss-public-data-mcp` bleibt ein Fall, in dem
+  beides zusammenfiel; er belegt nicht, dass der Text seine Ursache nennt.
+  Belegt ist jetzt das Gegenteil: derselbe Text, wo die Environment
+  nachweislich arbeitet.
+
+Was die Meldung *stattdessen* anzeigt, ist offen. Die naheliegende Vermutung —
+Codex lehnt den Draft ab und greift dafür zur falschen Vorlage — verträgt sich
+schlecht mit den beiden Gegenproben: #81 und #82 waren ebenfalls Drafts und
+bekamen nichts. Eine vorübergehende Störung passt besser, ist aber ebenso
+wenig gemessen. Gemessen ist allein, dass der Wortlaut hier nicht zutraf.
+
+Das ist dieselbe Figur wie beim 403 weiter oben, zum dritten Mal in dieser
+Datei: eine Störung, die als Auskunft über die Quelle daherkommt. Dort war eine
+Sperre als Fund-Fehlschlag verpackt, hier ist eine Absage als
+Konfigurationsmangel verpackt. Wer dem Wortlaut folgt, legt eine Environment an,
+die es längst gibt — und hält das Problem danach für gelöst. Der Handgriff ist
+derselbe wie überall in diesem Abschnitt: **erst die Positivkontrolle, dann die
+Einordnung.** Sie kostete hier einen einzigen Klick auf «ready».
 
 ---
 

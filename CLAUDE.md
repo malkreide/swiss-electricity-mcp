@@ -255,6 +255,7 @@ trägt Bedeutung:
   | 18.9. 07:01:59 | `swiss-electricity-mcp` #78 auf ready | ja |
   | 18.9. 07:57:05 | `swiss-electricity-mcp` #79 auf ready | ja |
   | 18.9. 08:33:16 | `bakom-mcp` #97 auf ready | ja |
+  | 18.9. 14:37:35 | `swiss-electricity-mcp` #84 auf ready | ja |
 
 Falls das trägt, sagt der Zusatz mit, *welcher* Topf leer ist — Code-Reviews
 haben laut Codex einen eigenen. Und er stützt nebenbei die offene Frage weiter
@@ -265,8 +266,8 @@ nächsten Mal zu achten ist.
 
 **Die Meldung kommt schnell.** Zwischen Auslöser und Absage lagen 2 bis 10
 Sekunden (2 s auf #77, 5 s auf #78, 2 s auf #79, 3 s auf `bakom-mcp` #97,
-10 s auf #76). Ein echter Lauf brauchte dagegen 6 bis 8 Sekunden bis
-zur `🔄 Running`-Tabelle und danach 67 bis 723 Sekunden bis `✅ Completed`. Wer
+10 s auf #76, 5 s auf #84). Ein echter Lauf brauchte dagegen 6 bis 8 Sekunden
+bis zur `🔄 Running`-Tabelle und danach 67 bis 723 Sekunden bis `✅ Completed`. Wer
 binnen weniger Sekunden einen Bot-Kommentar sieht, hat eher eine Absage vor
 sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
 
@@ -308,6 +309,24 @@ sein. Das ist die Beobachtung, die dem Augustfall oben fehlt, wo nur
 Fehlschläge notiert wurden und die Rechnung deshalb bis heute offen ist. Wer
 eine Sperre eingrenzen will, braucht beides: den letzten belegten Fehlschlag
 **und** den ersten belegten Erfolg.
+
+**Und dann war es wieder weg.** Vier Reviews liefen nach dem Ende der
+Vormittagssperre — 12:39:08Z (#80), 12:49:08Z (#81), 13:04:05Z (#82),
+13:14:38Z (#83). Um 14:37:35Z kam auf #84 wieder die Kontingent-Meldung. Die
+Erschöpfung fiel also **zwischen 13:14:38Z und 14:37:35Z**, 83 Minuten, in
+denen nicht gemessen wurde. Zwei Sperren an einem Tag, beide nur als Intervall
+belegt — und das passt zum rollenden Fünf-Stunden-Fenster, beweist es aber
+nicht: Vier Läufe verbrauchen etwas, wie viel, sagt keine dieser Beobachtungen.
+
+**Die Untergrenze ist der Start des letzten Laufs, nicht sein Ende.** Beim
+Aufschreiben stand hier zuerst 13:26:41Z, der Zeitpunkt, an dem der Lauf auf
+#83 auf `✅ Completed` sprang. Das ist falsch, und zwar auf die Art, die diese
+Datei überall sonst anmahnt: Geprüft wird das Kontingent, wenn ein Auslöser
+angenommen wird. Dass ein bereits laufender Review zu Ende geht, sagt über den
+Kontingentstand in jenem Moment nichts — der Lauf wurde nur nicht abgebrochen,
+und dass ein Merge ihn nicht abbricht, steht weiter unten als eigener Befund.
+Die späteren zwölf Minuten dem gemessenen Fenster zuzuschlagen hiesse, eine
+Vermutung als Messpunkt zu führen.
 
 Wie lange die Sperre dauerte, geben die Beobachtungen nur als Spanne her. Vier
 Zeitpunkte sind belegt: letzter gelungener Review am 21.8. um 08:41, erste
@@ -650,6 +669,31 @@ Wirkung. Zweitens: **Wer eine Minute nach dem Merge nachsieht,
 liest womöglich `🔄 Running` und hält es für Schweigen.** Das ist der
 praktische Grund für die Status-Regel oben: nachfassen, bis ein Endzustand
 dasteht.
+
+**Auch die Absage erreicht den geschlossenen PR.** Am 18.9. auf PR #84:
+`merged_at` 14:37:33Z, Kontingent-Meldung 14:37:35Z — zwei Sekunden **nach**
+dem Merge. Der ready-Zeitpunkt liegt nur als Webhook-Zustellung vor (~14:37:30Z)
+und ist hier nicht aus der API belegt; die Spanne ready→Merge ist also rund drei
+Sekunden, aber nicht auf die Sekunde gemessen. Die beiden anderen Zeitpunkte
+sind es.
+
+Das ist **kein vierter Beleg** für den Satz oben, und der Unterschied ist der
+ganze Punkt: Dort läuft ein Review weiter, hier lief nie einer. Gemeinsam ist
+beiden nur, dass ein geschlossener PR weiterhin beschrieben wird; die Aussage
+über die *Quelle* ist eine andere. Wer das zusammenwirft, hat wieder nach dem
+Text sortiert statt nach dem, was er belegt — dieselbe Verwechslung wie bei
+`lotId` und beim 403.
+
+**Zwei Fehler zugleich, und nur einer war sichtbar.** Derselbe PR ist auch ein
+weiterer Fall von «zu schnell gemergt» — rund drei Sekunden zwischen ready und
+Merge, bei 6 bis 8 Sekunden allein bis zum Start eines Laufs, also im selben
+Band wie die Fälle vom 21./22.8. Wer nur das sieht, schreibt «Review nicht
+abgewartet» auf und hat die Hälfte. Das Kontingent war zu diesem Zeitpunkt
+erschöpft — geprüft worden wäre der PR auch bei ruhigem Warten nicht. Zwei
+unabhängige Ausfälle fielen zusammen, und der zweite kam nur ans Licht, weil
+jemand den Text des Bot-Kommentars gelesen hat statt bloss seine Abwesenheit
+oder seine Ankunftszeit. Genau dafür steht die Regel weiter oben: **den Text
+lesen, nicht die Zahl.**
 
 Das Kontingent hängt am Konto, nicht am Repo — am 18.9. erstmals an zwei
 Repos **derselben** Sperre nachgemessen: `swiss-electricity-mcp` von 06:38:37Z

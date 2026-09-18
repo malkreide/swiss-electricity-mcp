@@ -266,7 +266,7 @@ nächsten Mal zu achten ist.
 **Die Meldung kommt schnell.** Zwischen Auslöser und Absage lagen 2 bis 10
 Sekunden (2 s auf #77, 5 s auf #78, 2 s auf #79, 3 s auf `bakom-mcp` #97,
 10 s auf #76). Ein echter Lauf brauchte dagegen acht Sekunden bis
-zur `🔄 Running`-Tabelle und danach 73 bis 80 Sekunden bis `✅ Completed`. Wer
+zur `🔄 Running`-Tabelle und danach 71 bis 80 Sekunden bis `✅ Completed`. Wer
 binnen weniger Sekunden einen Bot-Kommentar sieht, hat eher eine Absage vor
 sich als ein Urteil — ein Anhaltspunkt, kein Beweis.
 
@@ -282,6 +282,15 @@ der Abstand zweier Fehlschläge ist keine Untergrenze einer einzelnen Sperre —
 dieselbe Rechnung wie bei der Augustsperre weiter oben, und derselbe Fehler,
 wenn man sie unterlässt. Jeder der fünf Punkte ist zugleich eine
 fehlgeschlagene Positivkontrolle: An keinem lief ein Review an.
+
+**Und dann lief wieder einer.** Um 12:39:08Z startete auf PR #80 ein echter
+Review, 71 Sekunden später stand er auf `✅ Completed`. Die Sperre endete also
+**zwischen 08:33:16Z und 12:39:08Z** — ein Intervall, keine Dauer: In den gut
+vier Stunden dazwischen wurde nicht gemessen, sie kann jederzeit darin gefallen
+sein. Das ist die Beobachtung, die dem Augustfall oben fehlt, wo nur
+Fehlschläge notiert wurden und die Rechnung deshalb bis heute offen ist. Wer
+eine Sperre eingrenzen will, braucht beides: den letzten belegten Fehlschlag
+**und** den ersten belegten Erfolg.
 
 Wie lange die Sperre dauerte, geben die Beobachtungen nur als Spanne her. Vier
 Zeitpunkte sind belegt: letzter gelungener Review am 21.8. um 08:41, erste
@@ -324,10 +333,13 @@ ohne dass jemand hineingesehen hat, und am 22.8. noch einmal 43.
   die Meldung und in keinem die Reaktion. Der Kasten ist keine Quelle. Am
   18.9.2026 behauptete er auf `swiss-electricity-mcp` PR #75 zusätzlich eine
   Reaktion *während* des Laufs («reacts with 👀 while any review is running»);
-  gemessen wurde `reactions.total_count: 0` in **allen sieben** Ablesungen des
-  Tages — bei laufendem Review, bei fertigem und bei jeder der sechs Absagen.
-  Beide Reaktions-Behauptungen des Kastens sind damit unabhängig voneinander
-  widerlegt.
+  gemessen wurde `reactions.total_count: 0` in **allen neun** Ablesungen des
+  Tages. Entscheidend ist nicht die Zahl, sondern welche darunter sind: zwei
+  **echte** Läufe im Zustand `🔄 Running` (dort behauptet der Kasten 👀) und
+  zwei **echte** Läufe im Zustand `✅ Completed` ohne Befund (dort behauptet er
+  👍). Beide Behauptungen sind damit genau in den Zuständen widerlegt, für die
+  sie aufgestellt werden — nicht bloss an Absagen, wo ohnehin nichts zu
+  erwarten wäre.
 - **Der PR ist ein Draft** — darauf läuft Codex nicht an.
 - **Das Kontingent ist weg** — dann schreibt er die Meldung oben.
 - **Für das Repo fehlt eine Environment** — dann schreibt er:
@@ -485,14 +497,22 @@ einer, der stattgefunden hat. Dieselbe Verwechslung wie bei `lotId` und beim
 403 — nicht der Text entscheidet, in welche Liste etwas gehört, sondern was er
 über die *Quelle* aussagt.
 
-Was die Beobachtung **nicht** hergibt: ob `✅ Completed` ohne Begleitkommentar
-«kein Befund» heisst. Weder ein Review-Objekt noch die «Swish!»-Meldung kam,
-`get_reviews` blieb durchgehend `[]`. Möglich, dass diese Codex-Fassung die
-Befundlos-Meldung durch die Tabelle ersetzt hat; möglich auch, dass beides
-nebeneinander existiert und hier nur eines auftrat. Eine einzelne Beobachtung
-an einem PR trennt das nicht. Bis dahin gilt die Regel oben unverändert: belegt
-ist Befundlosigkeit durch ein Review-Objekt oder die Befundlos-Meldung — und
-`✅ Completed` ist keines von beidem.
+Ob `✅ Completed` ohne Begleitkommentar «kein Befund» heisst, stand hier
+zuerst als offene Frage. Drei beobachtete Läufe am 18.9. ordnen sich sauber:
+
+| PR | Ausgang | Was kam |
+|---|---|---|
+| #75 | kein Befund | nur die Tabelle auf `✅ Completed` |
+| #76 | ein P2-Befund | **Review-Objekt** plus Tabelle |
+| #80 | kein Befund | nur die Tabelle auf `✅ Completed` |
+
+Die «Swish!»-Meldung kam in **keinem** der drei. Das stützt deutlich, dass
+diese Codex-Fassung sie durch die Tabelle ersetzt hat — bewiesen ist es nicht:
+Drei Läufe an einem Tag in einem Repo schliessen nicht aus, dass beide Formen
+nebeneinander existieren und die eine hier nur nicht auftrat. Praktisch heisst
+das trotzdem: Ein `✅ Completed` **ohne** Review-Objekt ist hier das Signal für
+«geprüft, nichts gefunden» — und wer weiterhin auf die «Swish!»-Zeile wartet,
+wartet auf einen Text, den diese Fassung nicht mehr schreibt.
 
 Und ein befundloser Lauf ist kein Freispruch. Am 23.8. lief derselbe Text durch
 42 Reviews: 36 meldeten denselben P2-Befund, 6 die Befundlos-Meldung — gleiche
@@ -532,7 +552,9 @@ Merges nicht bloss ungesetzt, es war nicht setzbar.
 Zwei Dinge, die dieser Fall zusätzlich zeigt. Erstens: **Der Merge bricht den
 Review nicht ab.** Codex lief auf dem geschlossenen PR zu Ende, das Ergebnis ist
 also nachlesbar — nur gated es nichts mehr, und ein Befund träfe Code, der
-bereits in `main` steht. Zweitens: **Wer eine Minute nach dem Merge nachsieht,
+bereits in `main` steht. Am selben Tag ein zweites Mal auf PR #80: ready
+12:39:02Z, gemergt 12:39:07Z, Review-Start 12:39:08Z — der Merge lag **eine
+Sekunde vor** dem Start, und der Lauf ging trotzdem bis `✅ Completed` durch. Zweitens: **Wer eine Minute nach dem Merge nachsieht,
 liest womöglich `🔄 Running` und hält es für Schweigen.** Das ist der
 praktische Grund für die Status-Regel oben: nachfassen, bis ein Endzustand
 dasteht.

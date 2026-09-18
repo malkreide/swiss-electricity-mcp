@@ -448,15 +448,13 @@ Statuszeile —, schreibt einen Zwischenstand ab, und ohne den Zeitstempel daneb
 steht später ein Urteil, das nie eines war. `created_at` leistet auch das nicht:
 es bleibt beim ersten Schreiben stehen.
 
-Zwei Dinge, die hier naheliegen und **nicht gemessen** sind. Ob ein zweiter
-Review denselben Kommentar wiederverwendet und ihn auf `🔄 Running`
-zurücksetzt: Die Kopfzeile sagt «This comment shows the *latest* Codex review
-activity on this pull request», und die `id` blieb innerhalb eines Laufs
-stabil — beobachtet wurde aber auf beiden PRs nur je **ein** Lauf, das
-Überschreiben also nur innerhalb eines Lebenszyklus (`Running` → `Completed`).
-Und ob ein blosser Push einen Review auslöst: Der Infokasten listet nur «open
-a PR for review», «mark a draft as ready» und «@codex review» — gemessen ist es
-nicht.
+Was hier naheliegt und **nicht gemessen** ist: ob ein zweiter Review denselben
+Kommentar wiederverwendet und ihn auf `🔄 Running` zurücksetzt. Die Kopfzeile
+sagt «This comment shows the *latest* Codex review activity on this pull
+request», und die `id` blieb innerhalb eines Laufs stabil — beobachtet wurde
+aber pro PR nur je **ein** Lauf, das Überschreiben also nur innerhalb eines
+Lebenszyklus (`Running` → `Completed`). Die Frage bleibt offen, weil nie ein
+zweiter Lauf auf demselben PR zustande kam.
 
 Hier stand zwei Fassungen lang eine Messung, die keine war: Nach drei Pushes
 auf den offenen PR #76 (`ee0df1f`, `d792650`, `ea6257e`) blieb die Tabelle auf
@@ -473,11 +471,35 @@ antwortet nicht» — dasselbe wie die 39 Repos mit «Label fehlt» weiter oben,
 in einem anderen Werkzeug: die eigene Erschöpfung gemessen und für einen Befund
 über die Quelle gehalten. Es fehlte die Positivkontrolle.
 
-Wie die Messung gehen müsste: erst durch einen echten Lauf zeigen, dass Codex
-antwortfähig ist — ein PR auf «ready», bis `✅ Completed` dasteht —, dann einen
-zweiten Commit pushen und den Commit **in der Tabelle** lesen. Bleibt er auf
-dem alten Stand, sagt das etwas über Pushes. Ohne den vorangegangenen
-erfolgreichen Lauf sagt es nichts.
+**Am 18.9. um 13:07Z ist die Messung dann gelaufen, mit Positivkontrolle, und
+das Ergebnis ist eindeutig: Ein blosser Push löst keinen Review aus.**
+
+Die Anordnung, in dieser Reihenfolge:
+
+| Zeit (UTC) | Schritt |
+|---|---|
+| 13:03:58 | PR #82 auf «ready» |
+| 13:04:05 | Review startet — **Positivkontrolle**: Codex ist antwortfähig |
+| 13:06:13 | `✅ Completed` für Commit `e0118f4`, kein Befund |
+| ~13:07 | Push `e0118f4` → `57ec2f4` auf den **offenen** PR |
+| 13:09:46 | PR gemergt |
+| danach | Tabelle nennt weiterhin `e0118f4`, `updated_at` unverändert 13:06:14Z |
+
+Der Kommentar wurde nach dem Push nicht mehr angefasst — kein neuer Lauf, kein
+Rücksprung auf `🔄 Running`, kein zweiter Kommentar. Damit stimmt der
+Infokasten ausnahmsweise: Ein Push steht nicht auf seiner Auslöser-Liste, und
+er löst auch nichts aus.
+
+Worauf die Gültigkeit beruht, gehört dazugesagt: auf dem Lauf **davor**. Ohne
+ihn wäre es wieder der Fehlschluss vom selben Vormittag — «nichts passiert» ist
+nur dann eine Aussage über Pushes, wenn belegt ist, dass überhaupt etwas hätte
+passieren können.
+
+Und was sie nicht deckt: Das Fenster zwischen Push und Merge betrug rund
+zweieinhalb Minuten. Alle vier an diesem Tag beobachteten Läufe starteten 6 bis
+8 Sekunden nach ihrem Auslöser, ein ausgelöster Lauf wäre also längst sichtbar
+gewesen — ein stark verzögerter Trigger jenseits dieser zweieinhalb Minuten
+bleibt unbeobachtet.
 
 Der Reihenfolge wegen: Beide Sätze standen hier schon einmal als Tatsache, in
 derselben Fassung, die den Fehler unten korrigierte. Wer eine Regel

@@ -49,11 +49,11 @@ and a CI run cannot disagree:
 pre-commit install
 ```
 
-To run the CI gates by hand instead, install the pinned version explicitly —
-`pip install -e ".[dev]"` resolves `ruff>=0.4.0` to whatever is newest:
+To run the CI gates by hand instead, install the dev extra — it pins ruff
+exactly, the same version CI uses:
 
 ```bash
-pip install ruff==0.16.3
+pip install -e ".[dev]"
 ruff check src/ tests/ scripts/
 ruff format --check src/ tests/ scripts/
 ```

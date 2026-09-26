@@ -49,11 +49,11 @@ lokaler Lauf und die CI können also nicht auseinanderlaufen:
 pre-commit install
 ```
 
-Wer die Gates von Hand fährt, installiert die gepinnte Version explizit —
-`pip install -e ".[dev]"` löst `ruff>=0.4.0` auf die jeweils neueste auf:
+Wer die Gates von Hand fährt, installiert das dev-Extra — es pinnt ruff exakt,
+auf dieselbe Version wie die CI:
 
 ```bash
-pip install ruff==0.16.3
+pip install -e ".[dev]"
 ruff check src/ tests/ scripts/
 ruff format --check src/ tests/ scripts/
 ```

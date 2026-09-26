@@ -282,10 +282,12 @@ wie der Code: Nichts ist rot, weil nichts geprüft wird, worauf es ankommt.
 
 ## Dieses Repo
 
-**ruff: eine Quelle, plus der Hook.** Der Pin `0.16.3` steht im dev-Extra von
-`pyproject.toml`. `.pre-commit-config.yaml` trägt dieselbe Zahl ein zweites Mal
-(`rev: v0.16.3`), weil pre-commit `pyproject.toml` nicht lesen kann — beide
-zusammen bumpen. Die Workflows pinnen **nicht** selbst.
+**ruff: eine Quelle, plus der Hook.** Der Pin steht im dev-Extra von
+`pyproject.toml`. `.pre-commit-config.yaml` trägt dieselbe Zahl ein zweites
+Mal (als `rev:`), weil pre-commit `pyproject.toml` nicht lesen kann — beide
+zusammen bumpen. Die Version steht bewusst nicht hier;
+`tests/test_ruff_pin_doku.py` hält sie draussen. Die Workflows pinnen
+**nicht** selbst.
 
 `scripts/check_version_sync.py` erzwingt beides: Gleichstand der zwei Stellen
 und Abwesenheit eines eigenen CI-Pins. Nur der Gleichstand wäre zu schwach —

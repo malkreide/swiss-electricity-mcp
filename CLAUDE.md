@@ -42,6 +42,13 @@ Handgeschriebene Fixtures kodieren die Annahme des Autors und können sie nicht
 widerlegen. Mindestens eine aufgezeichnete Antwort pro externem Endpunkt, mit
 Aufnahmedatum.
 
+Das Werkzeug der Gegenprobe braucht selbst eine Positivkontrolle. Am 27.9.2026
+meldete ein Mutations-Skript für alle 19 Mutationen «kein Test rot» — nicht,
+weil die Tests nichts prüften, sondern weil es mit dem System-Python lief, das
+kein pytest hat. Die leere Liste der roten Tests sah genauso aus wie ein
+Befund, und «Basis: grün» ebenfalls. Vor dem Auswerten sicherstellen, dass
+pytest überhaupt eine Zeile `N passed` ausgegeben hat.
+
 ## Wenn etwas rot ist
 
 Roter Live-Test: erst die Quelle abfragen, dann einordnen. Nicht aus der
@@ -327,6 +334,17 @@ DRIFT-005 ist damit erfüllt — die Quelle wird planmässig abgefragt, nicht nu
 per `-m "not live"` aus der PR-CI ausgeschlossen. `schedule` greift nur auf
 `main`: Änderungen an dieser Datei wirken erst nach dem Merge, vorher von Hand
 auslösen.
+
+**Release-Gate:** `publish.yml` fährt `scripts/check_release_artifacts.py`
+im `build`-Job zwischen `python -m build` und dem Upload des Artefakts. Es
+prüft das gebaute Wheel (mcp-name-Marker in der METADATA, description ≤ 100,
+server.json = pyproject, Tag = gebaute Version); scheitert es, erreicht nichts
+PyPI oder die Registry. Das Skript ist eine Kopie aus dem Skill `github-repo`,
+mit unveränderter Logik — Änderungen dort nachziehen. Es prüft Metadaten,
+nicht Verhalten: dass 0.2.5 sieben Wochen lang kaputt auf PyPI lag, während
+`main` repariert war, hätte es nicht gefunden. `tests/test_release_gate.py`
+fährt es zusätzlich gegen die echten Quelldateien, damit ein Fund schon im PR
+auffällt und nicht erst beim Tag.
 
 **Fixtures:** `scripts/record_fixtures.py` erzeugt sie, Aufnahmedatum steht in
 `tests/fixtures/PROVENANCE.md`. Nicht von Hand pflegen.

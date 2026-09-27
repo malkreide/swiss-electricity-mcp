@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Release-Gate in `publish.yml`** — `scripts/check_release_artifacts.py`
+  prüft nach `python -m build` und vor dem Upload das gebaute Wheel:
+  mcp-name-Marker in der METADATA (genau einer, auch in der deklarierten
+  README, gleich `server.json` `name`), `description` ≤ 100 Zeichen,
+  `server.json` = `pyproject.toml`, Release-Tag = gebaute Version. Scheitert
+  es, entsteht kein Artefakt, und weder PyPI noch die MCP Registry erhalten
+  etwas. Der Tag kommt über `env` und bricht bei leerem Wert ab, weil das
+  Skript ohne `--tag` den Tag-Abgleich still überspringt.
+
 ## [0.3.0] - 2026-09-27
 
 ### Added

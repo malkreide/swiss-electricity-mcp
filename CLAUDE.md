@@ -335,6 +335,16 @@ per `-m "not live"` aus der PR-CI ausgeschlossen. `schedule` greift nur auf
 `main`: Änderungen an dieser Datei wirken erst nach dem Merge, vorher von Hand
 auslösen.
 
+Der Lauf hat zwei Ziele. `main` installiert den Quellcode (`pip install -e`),
+`pypi` das neueste Paket von PyPI und fährt dagegen die Suite **seines**
+Release-Tags, mit entferntem `src/` und belegtem Import aus `site-packages`.
+Jedes Ziel führt sein eigenes Issue. `main` grün und `pypi` rot heisst: der Fix
+liegt im Quellcode, nicht im Paket — ein Release ist fällig. Genau das sah bis
+2026-09-27 niemand; 0.2.5 lag sieben Wochen kaputt auf PyPI, während dieser Lauf
+grün war. Gemessen mit den `run:`-Blöcken des Workflows: Suite v0.2.5 gegen
+Paket 0.2.5 → `finding` an `test_elcom_zurich_tariffs_live`, 0.3.0 → `clear`.
+`tests/test_live_artifact_workflow.py` hält den Aufbau fest.
+
 **Release-Gate:** `publish.yml` fährt `scripts/check_release_artifacts.py`
 im `build`-Job zwischen `python -m build` und dem Upload des Artefakts. Es
 prüft das gebaute Wheel (mcp-name-Marker in der METADATA, description ≤ 100,

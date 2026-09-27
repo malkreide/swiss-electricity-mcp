@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Live-Lauf gegen das veröffentlichte Paket** — `live-tests.yml` prüft jetzt
+  zwei Ziele: `main` wie bisher und das neueste Paket von PyPI, gegen das die
+  Suite seines eigenen Release-Tags läuft (`src/` entfernt, Import aus
+  `site-packages` belegt). Jedes Ziel führt sein eigenes Issue; `main` grün und
+  PyPI rot heisst: ein Release ist fällig. Bisher prüfte jeder Lauf nur `main`,
+  deshalb blieb 0.2.5 rund sieben Wochen mit leeren Tarif-Antworten auf PyPI,
+  während der Lauf grün war. Nachgestellt mit den `run:`-Blöcken des Workflows:
+  Paket 0.2.5 → `finding` an `test_elcom_zurich_tariffs_live`, 0.3.0 → `clear`.
+
 - **Drift-Wache gegen den alten SDK-Namen** — `tests/test_sdk_name_drift.py`.
   Nach dem Wechsel auf `MCPServer` stand im Architektur-Diagramm von
   `README.md` noch «FastMCP server» (behoben in #84), ohne dass ein Gate es

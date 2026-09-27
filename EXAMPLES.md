@@ -203,7 +203,7 @@ ResponseEnvelope(
 **Drei Felder, ein Versprechen:** Wer das Envelope-Pattern erbt, kann **keine Daten ohne Quelle ausliefern**. Für jeden neuen Server im Portfolio ist das die billigste Versicherung gegen Halluzinationen und Audit-Probleme.
 
 **Retry-Policy zum Nachbauen:**
-- 5xx + 429 → Retry mit exponentiellem Backoff (2 s / 4 s / 8 s, max. 3 Versuche)
+- 5xx + 429 → Retry mit exponentiellem Backoff (Basis 2 s / 4 s / 8 s mit Jitter 0,5–1,5×, bis zu 3 Wiederholungen = höchstens 4 Versuche, einzelne Wartezeit ≤ 20 s, Gesamtbudget 25 s)
 - 4xx (ausser 429) → sofort raise (permanenter Client-Fehler)
 - Netzwerkfehler → `UpstreamUnreachableError`
 

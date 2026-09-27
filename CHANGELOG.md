@@ -26,6 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   etwas. Der Tag kommt über `env` und bricht bei leerem Wert ab, weil das
   Skript ohne `--tag` den Tag-Abgleich still überspringt.
 
+### Fixed
+
+- **Retry-Angabe in der Doku** — `README.md`, `README.de.md` und `EXAMPLES.md`
+  nannten «3 Versuche». Der Code macht bis zu 3 Wiederholungen, also höchstens
+  4 Versuche (`MAX_RETRIES = 3`, Schleife `range(MAX_RETRIES + 1)`); gemessen
+  bei dauerhaftem 503: 4 Aufrufe. Neu genannt sind auch Jitter (0,5–1,5×), der
+  Deckel von 20 s pro Wartezeit, der Vorrang von `Retry-After` und das
+  Gesamtbudget von 25 s, das die Versuchszahl unterschreiten kann. Die Stellen
+  mit «3 Retries» waren richtig und bleiben.
+
 ## [0.3.0] - 2026-09-27
 
 ### Added

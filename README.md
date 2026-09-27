@@ -194,7 +194,8 @@ This makes accidental misattribution structurally impossible.
 
 ### Resilience
 
-- **Retry**: 3 attempts with exponential backoff (2 s / 4 s / 8 s).
+- **Retry**: up to 3 retries, i.e. at most 4 attempts. Waits grow exponentially (base 2 s / 4 s / 8 s), each jittered to 0.5–1.5× so that clients do not return in lockstep after an outage. No single wait exceeds 20 s. A `Retry-After` sent with 429 or 503 takes precedence (plus 0–25 %, also capped at 20 s).
+- **Time budget**: 25 s for the whole call, all attempts and waits together. A wait that would overrun the budget ends the call instead, so there may be fewer than 4 attempts.
 - **5xx + 429**: retried. **4xx (except 429)**: raised immediately (permanent client error).
 - **In-memory TTL cache**: per-source TTLs reduce upstream load and round-trip during multi-step agent workflows.
 

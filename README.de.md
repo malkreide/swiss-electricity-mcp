@@ -134,7 +134,8 @@ Damit wird eine versehentliche Falschattribution strukturell unmöglich.
 
 ### Resilienz
 
-- **Retry**: 3 Versuche mit exponentiellem Backoff (2 s / 4 s / 8 s).
+- **Retry**: bis zu 3 Wiederholungen, also höchstens 4 Versuche. Die Wartezeiten wachsen exponentiell (Basis 2 s / 4 s / 8 s) und werden je zufällig auf das 0,5- bis 1,5-Fache gestreut, damit nach einem Ausfall nicht alle Clients im Gleichschritt wiederkommen. Keine einzelne Wartezeit dauert länger als 20 s. Schickt die Quelle bei 429 oder 503 ein `Retry-After`, gilt dieses (plus 0–25 %, ebenfalls höchstens 20 s).
+- **Zeitbudget**: 25 s für den ganzen Aufruf, alle Versuche und Wartezeiten zusammen. Würde eine Wartezeit das Budget sprengen, bricht der Aufruf ab, statt zu warten — dann bleibt es bei weniger als 4 Versuchen.
 - **5xx + 429**: werden wiederholt. **4xx (ausser 429)**: werden sofort weitergereicht (permanenter Client-Fehler).
 - **In-Memory-TTL-Cache**: quellenspezifische TTLs reduzieren Upstream-Last und Round-Trips in mehrstufigen Agent-Workflows.
 

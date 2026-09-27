@@ -6,6 +6,11 @@ Mondays at 05:23 UTC, plus on demand via `workflow_dispatch`. That scheduled
 run is what DRIFT-005 asks for: the mocked tests are written from the same
 assumption as the code and cannot notice when the source changes its format.
 
+The workflow runs this suite twice: against `main` (editable install) and
+against the newest package on PyPI, using the suite of that release's own tag.
+The second run is what would have caught 0.2.5, which returned no tariff rows
+for seven weeks while `main` already carried the fix.
+
 Run them by hand:
     pytest tests/test_live.py -m live -v
 """

@@ -5,6 +5,14 @@
 # `-m live`-Tests fragen sie wirklich ab; die CI der Pull Requests schliesst
 # sie per `-m "not live"` aus, und das bleibt so.
 #
+# Zwei Ziele, weil es zwei Fragen sind:
+#   main  Haelt der Quellcode auf `main` den Vertrag mit den Quellen?
+#   pypi  Haelt das Paket, das Nutzer tatsaechlich installieren?
+# Bis 2026-09-27 gab es nur die erste. 0.2.5 lieferte darum rund sieben Wochen
+# lang fuer alle Tarif-Werkzeuge leere Antworten, waehrend dieser Lauf gruen
+# war: `pip install -e` prueft `main`, und dort lag der Fix laengst. `main`
+# gruen und `pypi` rot heisst: ein Release ist faellig.
+#
 # Achtung: `schedule` greift nur auf dem Default-Branch. Aenderungen an dieser
 # Datei werden erst nach dem Merge wirksam. Vorher per `workflow_dispatch`
 # von Hand ausloesen.
@@ -29,11 +37,24 @@ concurrency:
 
 jobs:
   live:
-    name: Live-Suite gegen energiedashboard.admin.ch
+    name: Live-Suite (${{ matrix.target }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      # Das eine Ziel darf das andere nicht abbrechen: gerade der Unterschied
+      # zwischen beiden ist die Auskunft.
+      fail-fast: false
+      matrix:
+        include:
+          - target: main
+            suite_dir: "."
+            prefix: "Live-Tests gegen energiedashboard.admin.ch rot"
+          - target: pypi
+            suite_dir: released
+            prefix: "Live-Tests gegen das veroeffentlichte Paket rot"
 
     steps:
+      # Immer `main`: von hier kommen Einordnung und Issue-Logik.
       - uses: actions/checkout@v7
 
       - name: Set up Python
@@ -41,17 +62,58 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install dependencies
+      - name: Install dependencies (main, aus dem Quellcode)
+        if: matrix.target == 'main'
         run: pip install -e ".[dev]"
+
+      # Die neueste Version, die `pip` ohne Angabe waehlt — also das, was ein
+      # Nutzer bekommt (keine Vorabversionen, nichts Zurueckgezogenes).
+      - name: Veroeffentlichtes Paket installieren (pypi)
+        if: matrix.target == 'pypi'
+        id: pkg
+        run: |
+          pip install --no-cache-dir "swiss-electricity-mcp[dev]"
+          V=$(python -c "import importlib.metadata as m; print(m.version('swiss-electricity-mcp'))")
+          echo "version=${V:?Version nicht lesbar}" >> "$GITHUB_OUTPUT"
+
+      # Die Suite des Release-Tags, nicht die von `main`: Tests und Paket aus
+      # demselben Stand. Ein Test, den `main` seither dazugelernt hat, soll
+      # nicht gegen ein Paket rot werden, das ihn nie kennen konnte.
+      - name: Suite des Release-Tags holen (pypi)
+        if: matrix.target == 'pypi'
+        uses: actions/checkout@v7
+        with:
+          ref: v${{ steps.pkg.outputs.version }}
+          path: released
+
+      # Ohne `src/` kann nichts anderes importiert werden als das installierte
+      # Paket. Die Zusicherung danach belegt es, statt es anzunehmen.
+      - name: Quellcode entfernen, Import pruefen (pypi)
+        if: matrix.target == 'pypi'
+        working-directory: released
+        env:
+          PKG_VERSION: ${{ steps.pkg.outputs.version }}
+        run: |
+          rm -rf src
+          python - <<'EOF'
+          import importlib.metadata as md, os
+          import swiss_electricity_mcp as m
+          assert "site-packages" in m.__file__, m.__file__
+          assert md.version("swiss-electricity-mcp") == os.environ["PKG_VERSION"]
+          print("geprueft wird", m.__file__, os.environ["PKG_VERSION"])
+          EOF
 
       # `continue-on-error`, damit die Einordnung in jedem Fall laeuft. Rot
       # wird der Job weiter unten, aus dem eingeordneten Ergebnis.
       - name: Live-Suite
         id: suite
         continue-on-error: true
+        working-directory: ${{ matrix.suite_dir }}
+        env:
+          OUT: ${{ github.workspace }}
         run: |
           set +e
-          pytest -m live -v --junitxml=live-report.xml 2>&1 | tee live-output.txt
+          pytest -m live -v --junitxml="$OUT/live-report.xml" 2>&1 | tee "$OUT/live-output.txt"
           echo "pytest_exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
       # `if: failure()` kennt rot und nicht rot. Ein Live-Lauf hat drei
@@ -80,6 +142,9 @@ jobs:
           LIVE_STATE: ${{ steps.verdict.outputs.state }}
           LIVE_REASON: ${{ steps.verdict.outputs.reason }}
           LIVE_TAIL: ${{ steps.verdict.outputs.tail }}
+          LIVE_TARGET: ${{ matrix.target }}
+          LIVE_PREFIX: ${{ matrix.prefix }}
+          PKG_VERSION: ${{ steps.pkg.outputs.version }}
         with:
           script: |
             const state = process.env.LIVE_STATE;
@@ -88,7 +153,11 @@ jobs:
             // Stabiles Praefix: Damit ein zweiter roter Lauf den bestehenden
             // Thread verlaengert statt einen zweiten aufzumachen. Zehn Issues
             // zur selben Sache liest niemand.
-            const PREFIX = 'Live-Tests gegen energiedashboard.admin.ch rot';
+            // Je Ziel ein eigenes Praefix: Ein gruener `main`-Lauf darf das
+            // Issue zum veroeffentlichten Paket nicht schliessen.
+            const PREFIX = process.env.LIVE_PREFIX;
+            const target = process.env.LIVE_TARGET;
+            const version = process.env.PKG_VERSION || '';
             const LABEL = 'upstream';
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}` +
                         `/actions/runs/${context.runId}`;
@@ -115,8 +184,18 @@ jobs:
             }
 
             if (state === 'finding') {
+              const kopf = target === 'pypi'
+                ? [
+                    `Die Live-Suite gegen das **veroeffentlichte Paket** ` +
+                      `(\`swiss-electricity-mcp ${version}\` von PyPI, Suite des Tags \`v${version}\`) ist rot.`,
+                    '',
+                    'Ist der Lauf gegen `main` gleichzeitig gruen, liegt der Fix im Quellcode',
+                    'und nicht im Paket: **ein Release ist faellig.** Genau so lag 0.2.5 im',
+                    'Sommer 2026 sieben Wochen kaputt auf PyPI.',
+                  ]
+                : ['Die geplante Live-Suite gegen `energiedashboard.admin.ch` ist rot.'];
               const body = [
-                'Die geplante Live-Suite gegen `energiedashboard.admin.ch` ist rot.',
+                ...kopf,
                 '',
                 `Lauf: ${run}`,
                 `Einordnung: ${reason}`,

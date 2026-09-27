@@ -35,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Deckel von 20 s pro Wartezeit, der Vorrang von `Retry-After` und das
   Gesamtbudget von 25 s, das die Versuchszahl unterschreiten kann. Die Stellen
   mit «3 Retries» waren richtig und bleiben.
+- **Testzahl in `README.de.md`** — dort stand «19 Unit-Tests», `main` hat
+  266. Die Zahl ist gestrichen statt nachgeführt: jede feste Zahl veraltet mit
+  dem nächsten Test. Der Absatz folgt jetzt der englischen Fassung, die nie
+  eine Zahl nannte, und führt wie sie auch die Sicherheits-Tests und die
+  CI-Matrix auf, die im deutschen Text fehlten.
 
 ## [0.3.0] - 2026-09-27
 

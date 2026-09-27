@@ -214,7 +214,11 @@ PYTHONPATH=src pytest tests/ -m "not live" -v
 PYTHONPATH=src pytest tests/ -m live -v
 ```
 
-19 Unit-Tests decken die drei Vertragsschichten ab: **Happy** (Antwort-Parsing), **Retry** (5xx, 429, 4xx), **Timeout** (Netzwerkfehler → saubere `UpstreamUnreachableError`) plus Envelope-/Attribution-Invarianten.
+Die Unit-Tests decken die Vertragsschichten ab: **Happy** (Antwort-Parsing), **Retry**
+(5xx, 429, 4xx), **Timeout** (Netzwerkfehler → saubere `UpstreamUnreachableError`),
+Envelope-/Attribution-Invarianten sowie **Sicherheit** (Egress-Allowlist,
+SPARQL-Escaping, Tool-Definition-Lock). Die CI fährt ruff und `pytest -m "not live"`
+auf Python 3.11–3.13.
 
 ### Woher die Testdaten stammen
 

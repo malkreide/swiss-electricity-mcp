@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Drift-Wache gegen den alten SDK-Namen** — `tests/test_sdk_name_drift.py`.
+  Nach dem Wechsel auf `MCPServer` stand im Architektur-Diagramm von
+  `README.md` noch «FastMCP server» (behoben in #84), ohne dass ein Gate es
+  sah. Jetzt zwei Zusicherungen: kein «FastMCP» in einer versionierten Datei
+  ausser CHANGELOG und den datierten Audit-Berichten, und die Klasse, die
+  `server.mcp` zur Laufzeit ist, steht im Diagramm. Die zweite fängt auch den
+  nächsten Rename, den eine Sperrliste mit dem alten Namen nicht kennt.
+
 - **Release-Gate in `publish.yml`** — `scripts/check_release_artifacts.py`
   prüft nach `python -m build` und vor dem Upload das gebaute Wheel:
   mcp-name-Marker in der METADATA (genau einer, auch in der deklarierten

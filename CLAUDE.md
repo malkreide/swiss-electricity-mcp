@@ -346,6 +346,16 @@ nicht Verhalten: dass 0.2.5 sieben Wochen lang kaputt auf PyPI lag, während
 fährt es zusätzlich gegen die echten Quelldateien, damit ein Fund schon im PR
 auffällt und nicht erst beim Tag.
 
+**SDK-Name in der Doku:** `tests/test_sdk_name_drift.py` scannt alle
+versionierten Dateien auf den Namen der SDK-Klasse vor dem Wechsel auf
+`mcp[cli]>=2` (Muster `ALTER_NAME` im Test) — ausser `CHANGELOG.md` und `audits/`,
+die den Server beschreiben, wie er war — und prüft, dass die Klasse, die
+`server.mcp` zur Laufzeit ist, im Architektur-Diagramm von `README.md` steht.
+Wer den alten Namen bewusst in eine neue Datei schreibt (etwa eine
+Migrationsnotiz), trägt sie in `HISTORIE` ein; nicht die Wache abschwächen.
+Auch dieser Absatz fiel ihr beim Schreiben zum Opfer, deshalb nennt er den
+Namen nicht.
+
 **Fixtures:** `scripts/record_fixtures.py` erzeugt sie, Aufnahmedatum steht in
 `tests/fixtures/PROVENANCE.md`. Nicht von Hand pflegen.
 

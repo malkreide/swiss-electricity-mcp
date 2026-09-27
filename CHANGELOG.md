@@ -26,6 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   etwas. Der Tag kommt über `env` und bricht bei leerem Wert ab, weil das
   Skript ohne `--tag` den Tag-Abgleich still überspringt.
 
+### Security
+
+- **Lieferkette von `publish.yml`** — der Workflow hält das OIDC-Token für PyPI
+  und die MCP Registry. Jede Action ist jetzt auf einen Commit-SHA gepinnt
+  statt auf einen Tag; `pypa/gh-action-pypi-publish` stand auf dem Branch
+  `release/v1`, der mit jedem Push wandert. Die Pins zeigen auf dieselben
+  Commits, die `@v7`, `@v8` und `@release/v1` am 2026-09-27 lieferten — der
+  laufende Code bleibt gleich. `mcp-publisher` kam per `curl | tar` ungeprüft
+  aus `releases/latest`; jetzt Version 1.8.1 mit fester SHA-256-Prüfsumme, die
+  vor dem Entpacken geprüft wird. Jeder Job hat ein `timeout-minutes`
+  (15/10/10) statt sechs Stunden Standard. `tests/test_publish_hardening.py`
+  hält alle drei fest.
+
 ### Fixed
 
 - **Retry-Angabe in der Doku** — `README.md`, `README.de.md` und `EXAMPLES.md`

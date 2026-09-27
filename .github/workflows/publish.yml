@@ -7,12 +7,21 @@ on:
 permissions:
   contents: read
 
+# Lieferkette: Jede Action ist auf einen Commit-SHA gepinnt, nicht auf einen Tag
+# oder Branch. Ein Tag laesst sich umhaengen, `release/v1` wandert mit jedem
+# Push — und dieser Workflow haelt das OIDC-Token fuer PyPI und die Registry.
+# Die Versionskommentare liest Dependabot (github-actions, monatlich) und hebt
+# SHA und Kommentar gemeinsam an.
+# `timeout-minutes` begrenzt jeden Job; ohne liefe ein haengender Schritt bis
+# zum GitHub-Standard von sechs Stunden.
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
       - name: Build sdist + wheel
@@ -30,7 +39,7 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name }}
         run: python scripts/check_release_artifacts.py --dist dist --repo . --tag "${TAG:?Release-Tag fehlt}"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
           path: dist/
@@ -38,27 +47,29 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: pypi
     permissions:
       id-token: write   # OIDC: Trusted Publisher, no API token in secrets
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist/
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
 
   publish-mcp:
     name: Publish to MCP Registry
     needs: publish
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       id-token: write   # required for MCP Registry Trusted Publishing (OIDC)
       contents: read
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Sync server.json version to the release tag
         run: |
@@ -66,9 +77,23 @@ jobs:
           jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' \
             server.json > server.tmp && mv server.tmp server.json
 
+      # Version und Pruefsumme fest. Vorher kam `releases/latest` ungeprueft per
+      # `curl | tar` — was dort gerade lag, bekam das OIDC-Token der Registry.
+      # Die Pruefsumme steht hier und nicht in der checksums-Datei desselben
+      # Releases: die laege auf demselben Server wie das Archiv und hielte gegen
+      # dessen Austausch nicht. Dependabot kennt dieses Binary nicht; Anheben
+      # von Hand, siehe CLAUDE.md. Nur linux_amd64 — ubuntu-latest; ein anderer
+      # Runner scheitert laut an der Pruefsumme statt still ein Archiv zu laden.
       - name: Install mcp-publisher
+        env:
+          MCP_PUBLISHER_VERSION: "1.8.1"
+          MCP_PUBLISHER_SHA256: "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc"
         run: |
-          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "${MCP_PUBLISHER_SHA256}  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+          ./mcp-publisher --version
 
       - name: Authenticate to MCP Registry (GitHub OIDC)
         run: ./mcp-publisher login github-oidc

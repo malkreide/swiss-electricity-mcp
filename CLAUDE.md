@@ -346,6 +346,25 @@ nicht Verhalten: dass 0.2.5 sieben Wochen lang kaputt auf PyPI lag, während
 fährt es zusätzlich gegen die echten Quelldateien, damit ein Fund schon im PR
 auffällt und nicht erst beim Tag.
 
+**Lieferkette in `publish.yml`:** Jede Action steht auf einem Commit-SHA mit
+`# vX.Y.Z` dahinter; Dependabot (github-actions, monatlich) hebt beides
+gemeinsam an. `mcp-publisher` kennt Dependabot nicht — Anheben von Hand:
+
+```bash
+V=1.8.1   # neue Version aus: git ls-remote --tags https://github.com/modelcontextprotocol/registry
+curl -fsSLO "https://github.com/modelcontextprotocol/registry/releases/download/v$V/registry_${V}_checksums.txt"
+grep ' mcp-publisher_linux_amd64.tar.gz$' "registry_${V}_checksums.txt"
+```
+
+Den Hash nach `MCP_PUBLISHER_SHA256`, die Version nach `MCP_PUBLISHER_VERSION`.
+Dann das Archiv laden, `sha256sum -c`, entpacken und `./mcp-publisher --version`
+lesen: der dort genannte Commit muss der des Tags sein. Die checksums-Datei ist
+Quelle beim Anheben, nicht Prüfung zur Laufzeit — zur Laufzeit gilt nur der Hash
+im Workflow. `releases/latest` löst hinter dem Agent-Proxy nicht auf (403); die
+Version aus `git ls-remote --tags` nehmen. `tests/test_publish_hardening.py`
+hält SHA-Pins, Versionskommentare, feste Version und Prüfsumme vor dem Entpacken
+und die Timeouts fest.
+
 **SDK-Name in der Doku:** `tests/test_sdk_name_drift.py` scannt alle
 versionierten Dateien auf den Namen der SDK-Klasse vor dem Wechsel auf
 `mcp[cli]>=2` (Muster `ALTER_NAME` im Test) — ausser `CHANGELOG.md` und `audits/`,

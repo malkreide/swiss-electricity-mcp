@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-27
+
 ### Added
 
 - **Der Server meldet seine eigene Identität** — `name`, `title`, `version`,
@@ -80,6 +82,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Gegenprobe zeigt, dass es die Luecke wirklich gab: nimmt man den Header aus
   der Freigabeliste, faellt genau dieser eine Test, und die sieben bestehenden
   bleiben gruen.
+
+- **Aufgezeichnete Fixture-Herkunft.** `scripts/record_fixtures.py` holt neun
+  Antworten von den echten Quellen — die drei ElCom-Abfragen über LINDAS, die
+  vier Endpunkte des BFE-Energiedashboards und die beiden CKAN-Suchen — und
+  schreibt `tests/fixtures/PROVENANCE.md` mit Quelle, Datum, Auswahlregel und
+  SHA-256 je Datei.
+
+  **Die Anfragen baut der Produktivcode.** Das Skript ruft die Client-Klassen
+  auf und fängt die Antwort über einen httpx-Transport ab, statt die
+  SPARQL-Abfragen daneben noch einmal zu tippen. Eine Fixture, die eine leicht
+  andere Frage beantwortet als der Server stellt, belegt die falsche Antwort —
+  unauffällig, weil sie plausibel aussieht. Bei 40 Zeilen SPARQL ist «leicht
+  anders» der Normalfall.
+
+  Zwei Auswahlregeln sind bewusst mehr als «die ersten N», und die zweite ist
+  eine Korrektur an mir selbst:
+
+  - Die Speicherseen-Reihe behält die Zeilen **ohne** Messung. Ohne sie könnte
+    kein Test zeigen, dass das Werkzeug sie überspringt.
+  - Was als Messung zählt, steht je Datei ausgeschrieben. Die erste Fassung
+    nahm «irgendein Feld ausser `date` ist nicht null» — falsch, denn die
+    Zukunftszeilen tragen sehr wohl Werte (die Fünfjahres-Referenzkurven), nur
+    keine Messung. Das generische Kriterium hielt sie für echt und schnitt
+    genau die Zeilen weg, wegen derer es die Fixture gibt.
+
+  Das Skript bricht laut ab, wenn eine ElCom-Abfrage nichts findet, wenn ein
+  `LIMIT` nicht mehr wirkt, wenn CKAN mehr liefert als `rows` erlaubt oder wenn
+  eine gekürzte Zeitreihe kein Messfeld hinterlegt hat.
+
+  `tests/test_recorded_sources.py` hält Abfragen und Verarbeitung dagegen;
+  `tests/fixture_data.py` lädt und behandelt einen fehlenden Namen als Fehler
+  statt als leere Struktur.
 
 ### Fixed
 
@@ -171,8 +205,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Der CKAN-Sweep reparierte den einen Pfad dieses Servers, LINDAS ist der
   andere.
 
-### Fixed
-
 - **Eine Strukturänderung von CKAN wurde zu «keine Treffer».** Beide
   Datensatz-Suchen — `opendata.swiss` und `data.stadt-zuerich.ch` — schrieben
   `result = data.get("result") or {}` und lasen danach `result.get("results", [])`.
@@ -206,8 +238,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [`FID-006`](https://github.com/malkreide/mcp-audit-skill/blob/main/checks/FID-006.md)
   am 2026-08-07: Acht Server im Portfolio sprechen mit CKAN, alle acht prüfen
   das `success`-Envelope, sieben defaulteten `result` danach.
-
-### Fixed
 
 - **The retry had six defects, all inherited from the shared template.** This
   server copied its retry from `reference/retry_backoff.py` in
@@ -246,40 +276,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   New `tests/test_retry_policy.py`: `Retry-After` in both forms plus the
   refusal cases, the jitter spread, that the cap binds after jittering, and the
   one-sided `Retry-After` jitter.
-
-### Added
-
-- **Aufgezeichnete Fixture-Herkunft.** `scripts/record_fixtures.py` holt neun
-  Antworten von den echten Quellen — die drei ElCom-Abfragen über LINDAS, die
-  vier Endpunkte des BFE-Energiedashboards und die beiden CKAN-Suchen — und
-  schreibt `tests/fixtures/PROVENANCE.md` mit Quelle, Datum, Auswahlregel und
-  SHA-256 je Datei.
-
-  **Die Anfragen baut der Produktivcode.** Das Skript ruft die Client-Klassen
-  auf und fängt die Antwort über einen httpx-Transport ab, statt die
-  SPARQL-Abfragen daneben noch einmal zu tippen. Eine Fixture, die eine leicht
-  andere Frage beantwortet als der Server stellt, belegt die falsche Antwort —
-  unauffällig, weil sie plausibel aussieht. Bei 40 Zeilen SPARQL ist «leicht
-  anders» der Normalfall.
-
-  Zwei Auswahlregeln sind bewusst mehr als «die ersten N», und die zweite ist
-  eine Korrektur an mir selbst:
-
-  - Die Speicherseen-Reihe behält die Zeilen **ohne** Messung. Ohne sie könnte
-    kein Test zeigen, dass das Werkzeug sie überspringt.
-  - Was als Messung zählt, steht je Datei ausgeschrieben. Die erste Fassung
-    nahm «irgendein Feld ausser `date` ist nicht null» — falsch, denn die
-    Zukunftszeilen tragen sehr wohl Werte (die Fünfjahres-Referenzkurven), nur
-    keine Messung. Das generische Kriterium hielt sie für echt und schnitt
-    genau die Zeilen weg, wegen derer es die Fixture gibt.
-
-  Das Skript bricht laut ab, wenn eine ElCom-Abfrage nichts findet, wenn ein
-  `LIMIT` nicht mehr wirkt, wenn CKAN mehr liefert als `rows` erlaubt oder wenn
-  eine gekürzte Zeitreihe kein Messfeld hinterlegt hat.
-
-  `tests/test_recorded_sources.py` hält Abfragen und Verarbeitung dagegen;
-  `tests/fixture_data.py` lädt und behandelt einen fehlenden Namen als Fehler
-  statt als leere Struktur.
 
 ## [0.2.5] - 2026-08-02
 
